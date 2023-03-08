@@ -1,8 +1,10 @@
 ﻿namespace Entity
 {
-    public class RawMaterialUnitMeasure : BaseDataModel
+    public class RawMaterialUnitMeasurePrice : BaseDataModel
     {
-        public long RawMaterialId { get; set; }
-        public long UnitMeasureId { get; set; }
+        public long RawMaterialUnitMeasureId { get; set; }
+        public DateTime Date { get; set; }       
+        public decimal Price { get; set; }
+        public bool CurrentPrice { get; set; }
     }
 }
