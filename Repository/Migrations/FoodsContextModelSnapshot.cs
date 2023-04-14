@@ -752,6 +752,21 @@ namespace Repository.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            Active = false,
+                            Email = "memo_mad2007@hotmail.com",
+                            FullName = "Admen",
+                            GenderId = 0L,
+                            JobId = 0L,
+                            NumberFamilyMembers = 0,
+                            Password = "2C7SY4BTJAW8CaJoivJAUA==",
+                            ReligionId = 0L,
+                            Status = 0
+                        });
                 });
 #pragma warning restore 612, 618
         }

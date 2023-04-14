@@ -7,6 +7,64 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\dist\css\.DS_Store" />
+    <None Include="wwwroot\dist\fonts\.DS_Store" />
+    <None Include="wwwroot\dist\images\.DS_Store" />
+    <None Include="wwwroot\dist\images\bg-login-page-dark.svg" />
+    <None Include="wwwroot\dist\images\bg-login-page.svg" />
+    <None Include="wwwroot\dist\images\error-illustration.svg" />
+    <None Include="wwwroot\dist\images\Group 1.svg" />
+    <None Include="wwwroot\dist\images\Group 2.svg" />
+    <None Include="wwwroot\dist\images\illustration.svg" />
+    <None Include="wwwroot\dist\images\illustration2.svg" />
+    <None Include="wwwroot\dist\images\logo.svg" />
+    <None Include="wwwroot\dist\images\map-marker-dark.svg" />
+    <None Include="wwwroot\dist\images\map-marker-region-dark.svg" />
+    <None Include="wwwroot\dist\images\map-marker-region.svg" />
+    <None Include="wwwroot\dist\images\map-marker.svg" />
+    <None Include="wwwroot\dist\images\phone-illustration.svg" />
+    <None Include="wwwroot\dist\images\placeholders\.DS_Store" />
+    <None Include="wwwroot\dist\images\woman-illustration.svg" />
+    <None Include="wwwroot\dist\js\.DS_Store" />
+    <None Include="wwwroot\dist\js\app.js" />
+    <None Include="wwwroot\dist\js\ckeditor-balloon-block.js" />
+    <None Include="wwwroot\dist\js\ckeditor-balloon.js" />
+    <None Include="wwwroot\dist\js\ckeditor-classic.js" />
+    <None Include="wwwroot\dist\js\ckeditor-document.js" />
+    <None Include="wwwroot\dist\js\ckeditor-inline.js" />
+    <None Include="wwwroot\dist\js\jstree.js" />
+    <None Include="wwwroot\dist\js\jstree.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

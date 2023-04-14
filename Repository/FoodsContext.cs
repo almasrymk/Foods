@@ -1,5 +1,7 @@
-﻿using Entity;
+﻿using FoodEntity.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Repository.Security;
 using System;
 
 namespace Repository
@@ -34,5 +36,25 @@ namespace Repository
         public virtual DbSet<Religion> Religions => Set<Religion>();
         public virtual DbSet<UnitMeasure> UnitMeasures => Set<UnitMeasure>();
         public virtual DbSet<User> Users => Set<User>();
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            var builder = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            IConfigurationRoot config = builder.Build();
+            optionsBuilder.UseSqlServer(config.GetConnectionString("FoodsContext"));
+        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //modelBuilder.S
+            modelBuilder.Entity<User>().HasData(new User
+            {
+                Id = 1,
+                FullName = "Admen",
+                Email = "memo_mad2007@hotmail.com",
+                Password = EncryptString.Encrypt("123456"),
+            });
+        }
+
+
     }
 }

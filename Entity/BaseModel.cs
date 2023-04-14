@@ -1,9 +1,9 @@
-﻿namespace Entity
+﻿namespace FoodEntity.Models
 {
-    using Utility;
+    //using Utility;
     public class BaseModel
     {
-        public virtual long Id  { get; set; }                
-        public Status Status { get; set; }
+        public virtual long Id  { get; set; }
+        //public Status Status { get; set; }
     }
 }

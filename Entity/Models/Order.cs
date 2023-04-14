@@ -1,6 +1,6 @@
 ﻿using System.Reflection.PortableExecutable;
 
-namespace Entity
+namespace FoodEntity.Models
 {
     public class Order : BaseTransModel
     {
