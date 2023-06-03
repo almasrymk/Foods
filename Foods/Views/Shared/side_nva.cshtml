@@ -4,12 +4,13 @@
             <li class="menu-title">
                 <span>Main Menu</span>
             </li>
-            <li class="submenu active">
+            <li class="submenu @("Users".Contains(ViewContext.RouteData.Values["controller"].ToString()) ? "active" : "")">
                 <a href="#">
-                    <i class="feather-grid"></i> <span> Dashboard</span> <span class="menu-arrow"></span>
+                    <i class="feather-grid"></i> <span> @FoodEntity.Resources.Title.BasicData</span> <span class="menu-arrow"></span>
                 </a>
                 <ul>
-                    <li><a href="index.html" class="active">Admin Dashboard</a></li>
+
+                    <li><a asp-controller="Users" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")">@FoodEntity.Resources.Title.Users</a></li>
                     <li><a href="teacher-dashboard.html">Teacher Dashboard</a></li>
                     <li><a href="student-dashboard.html">Student Dashboard</a></li>
                 </ul>

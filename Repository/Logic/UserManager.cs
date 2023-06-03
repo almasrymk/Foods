@@ -78,7 +78,7 @@ namespace Repository.Logic
             return users;
         }
 
-        public User GetUserbyID(int Id = 0)
+        public User GetUserbyID(long Id = 0)
         {
             var users = db.Users.Find(Id);
             return users ?? new User();
@@ -105,7 +105,7 @@ namespace Repository.Logic
             return model;
         }
 
-        public void DleteUserbyID(int Id = 0)
+        public void DleteUserbyID(long Id = 0)
         {
             var users = db.Users.Find(Id);
             db.Users.Remove(users);

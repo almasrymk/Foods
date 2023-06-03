@@ -1,0 +1,86 @@
+﻿@model FoodEntity.Models.User
+
+@{
+    ViewBag.Title = "Save";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm-12">
+            <div class="page-sub-header">
+                <h3 class="page-title">@FoodEntity.Resources.Title.Users</h3>
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="students.html">@FoodEntity.Resources.Title.Users</a></li>
+                    <li class="breadcrumb-item active">@FoodEntity.Resources.Title.User</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card comman-shadow">
+            <div class="card-body">
+                @using (Html.BeginForm("Save", "Users", FormMethod.Post, new { @id = "form1", @class = "needs-validation", @novalidate = "novalidate" }))
+                {
+                    <div class="row">
+
+                        <div class="col-12 col-sm-4">
+                            <div class="form-group local-forms">
+                                <label>First Name <span class="login-danger">*</span></label>
+                                @Html.TextBoxFor(m => m.FullName, "", new { @class = "form-control", @placeholder =FoodEntity.Resources.Title.Name,@minlength="2",@required="required" })
+                                <div class="invalid-feedback">You must check the box.</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <div class="form-group local-forms">
+                                <label>@FoodEntity.Resources.Title.Passwoerd <span class="login-danger">*</span></label>
+                                @Html.PasswordFor(m => m.Password, new { @class = "form-control", @name = "Password", @placeholder =FoodEntity.Resources.Title.Passwoerd,@minlength="8",@required="required" })
+                                <div class="invalid-feedback">You must check the box.</div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="student-submit">
+                                @*<button href="@Url.Action("Index")" class="btn btn-secondary btnstyle">Back</button>*@
+
+                                <a href="/Users/Index" class="btn btn-secondary btnstyle">Back</a>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    (function () {
+        'use strict'
+
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll('.needs-validation')
+
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })();
+</script>
+<!-- Jquery Validation -->
+@*<script src="~/vendor/jquery-validation/jquery.validate.min.js"></script>
+<!-- Form validate init -->
+<script src="~/assets/plugins-init/jquery.validate-init.js"></script>*@

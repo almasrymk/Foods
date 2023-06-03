@@ -1,0 +1,253 @@
+﻿@using System.Text
+@using X.PagedList.Web.Common
+
+@model X.PagedList.IPagedList
+
+@{
+    var options = (PagedListRenderOptions)ViewData["Options"];
+    //var generatePageUrl = (Func<int, string>)ViewData["GeneratePageUrl"];
+    //var containerDivClasses = (options.ContainerDivClasses ?? Enumerable.Empty<string>()).Aggregate(new StringBuilder(), (c, n) => c.Append(n).Append(" "));
+    var ulElementClasses = (options.UlElementClasses ?? Enumerable.Empty<string>()).Aggregate(new StringBuilder(), (c, n) => c.Append(n).Append(""));
+
+    var cvr = Context.Request.Path;
+    var list = Model;
+
+    //calculate start and end of range of page numbers
+    var firstPageToDisplay = 1;
+    var lastPageToDisplay = list.PageCount;
+    var pageNumbersToDisplay = lastPageToDisplay;
+    //var pageClasses = "px-4 py-3 rounded-full bg-gray-200 text-gray-600 mr-1";
+    var pageClasses = "page-link";
+    var pageli = "page-item";
+    var css = "";
+    if (options.MaximumPageNumbersToDisplay.HasValue && list?.PageCount > options.MaximumPageNumbersToDisplay)
+    {
+        // cannot fit all pages into pager
+        var maxPageNumbersToDisplay = options.MaximumPageNumbersToDisplay.Value;
+
+        firstPageToDisplay = list.PageNumber - maxPageNumbersToDisplay / 2;
+
+        if (firstPageToDisplay < 1)
+        {
+            firstPageToDisplay = 1;
+        }
+
+        pageNumbersToDisplay = maxPageNumbersToDisplay;
+        lastPageToDisplay = firstPageToDisplay + pageNumbersToDisplay - 1;
+
+        if (lastPageToDisplay > list.PageCount)
+        {
+            firstPageToDisplay = list.PageCount - maxPageNumbersToDisplay + 1;
+        }
+    }
+}
+
+
+<ul class="pagination mb-4">
+
+    @if (options.DisplayLinkToPreviousPage == PagedListDisplayMode.Always || (options.DisplayLinkToPreviousPage == PagedListDisplayMode.IfNeeded && !list.IsFirstPage))
+    {
+
+        var targetPageNumber = list.PageNumber - 1;
+
+        if (!list.HasPreviousPage)
+        {
+            //FunctionToTransformEachPageLink
+
+            <li class="@pageli disabled">
+                <a class="@pageClasses @css">
+                    <span>&laquo;</span>
+                    <i class="fe fe-chevron-left" data-bs-toggle="tooltip" title="fe fe-chevron-left"></i>
+                </a>
+            </li>
+        }
+        else
+        {
+            //FunctionToTransformEachPageLink
+
+            <li class="@pageli">
+                <a class="@pageClasses @css" href="@cvr?page=@targetPageNumber">
+
+                    <span aria-hidden="true">&laquo;</span>
+
+                    <i class="fe fe-chevrons-left" data-bs-toggle="tooltip" title="fe fe-chevrons-left"></i>
+
+                </a>
+            </li>
+        }
+    }
+
+    @*first*@
+    @if (options.DisplayLinkToFirstPage == PagedListDisplayMode.Always || (options.DisplayLinkToFirstPage == PagedListDisplayMode.IfNeeded && firstPageToDisplay > 1))
+    {
+
+        const int targetPageNumber = 1;
+
+        if (list.IsFirstPage)
+        {
+            //FunctionToTransformEachPageLink
+            <li class="page-item disabled"> <a class="page-link @css" href="#">@targetPageNumber</a> </li>
+
+        }
+        else
+        {
+            //FunctionToTransformEachPageLink
+
+            <li class="@pageli">
+                <a class="@pageClasses @css" href="@cvr?page=@targetPageNumber">@targetPageNumber</a>
+            </li>
+
+            @*<li class="page-item disabled"> <a class="page-link @css" href="#">@targetPageNumber</a> </li>*@
+
+        }
+    }
+
+    @*text*@
+    @if (options.DisplayPageCountAndCurrentLocation)
+    {
+        <li class="@pageli disabled">
+            <a class="@pageClasses @css">@string.Format(options.PageCountAndCurrentLocationFormat, list.PageNumber, list.PageCount)</a>
+        </li>
+    }
+
+    @*text*@
+    @if (options.DisplayItemSliceAndTotal)
+    {
+        <li class="@pageli disabled">
+            <a class="@pageClasses @css">@string.Format(options.ItemSliceAndTotalFormat, list.FirstItemOnPage, list.LastItemOnPage, list.TotalItemCount)</a>
+        </li>
+    }
+
+    @*page*@
+    @if (options.DisplayLinkToIndividualPages)
+    {
+        //if there are previous page numbers not displayed, show an ellipsis
+        if (options.DisplayEllipsesWhenNotShowingAllPageNumbers && firstPageToDisplay > 1)
+        {
+            var targetPageNumber = firstPageToDisplay - 1;
+
+            if (!list.HasPreviousPage)
+            {
+                //FunctionToTransformEachPageLink
+
+                <li class="@pageli @options.EllipsesElementClass disabled">
+                    <a class="@pageClasses @css">@Html.Raw(string.Format(options.EllipsesFormat, targetPageNumber))</a>
+                </li>
+            }
+            else
+            {
+                //FunctionToTransformEachPageLink
+
+                <li class="@pageli @options.EllipsesElementClass">
+                    <a rel="prev" class="@pageClasses @css" href="@cvr?page=@targetPageNumber">@Html.Raw(string.Format(options.EllipsesFormat, targetPageNumber))</a>
+                </li>
+            }
+        }
+
+        foreach (var i in Enumerable.Range(firstPageToDisplay, pageNumbersToDisplay))
+        {
+            //show delimiter between page numbers
+            if (i > firstPageToDisplay && !string.IsNullOrWhiteSpace(options.DelimiterBetweenPageNumbers))
+            {
+                <li @pageli>@options.DelimiterBetweenPageNumbers</li>
+            }
+            var targetPageNumber = i;
+
+            if (i == list.PageNumber)
+            {
+                //FunctionToTransformEachPageLink
+
+                <li class="@pageli @options.ActiveLiElementClass">
+                    <a class="@pageClasses @css">@string.Format(options.LinkToIndividualPageFormat, targetPageNumber)</a>
+                </li>
+            }
+            else
+            {
+                //FunctionToTransformEachPageLink
+
+                <li class="@pageli">
+                    <a rel="prev" class="@pageClasses @css" href="@cvr?page=@targetPageNumber">@string.Format(options.LinkToIndividualPageFormat, targetPageNumber)</a>
+                </li>
+            }
+        }
+
+        //if there are subsequent page numbers not displayed, show an ellipsis
+        if (options.DisplayEllipsesWhenNotShowingAllPageNumbers && (firstPageToDisplay + pageNumbersToDisplay - 1) < list.PageCount)
+        {
+            var targetPageNumber = lastPageToDisplay + 1;
+
+            if (!list.HasPreviousPage)
+            {
+                //FunctionToTransformEachPageLink
+
+                <li class="@pageli @options.EllipsesElementClass disabled">
+                    <a class="@pageClasses @css">@Html.Raw(string.Format(options.EllipsesFormat, targetPageNumber))</a>
+                </li>
+            }
+            else
+            {
+                //FunctionToTransformEachPageLink
+
+                <li class="@pageli @options.EllipsesElementClass">
+                    <a rel="next" class="@pageClasses @css" href="@cvr?page=@targetPageNumber">@Html.Raw(string.Format(options.EllipsesFormat, targetPageNumber))</a>
+                </li>
+            }
+        }
+    }
+
+    @*last*@
+    @if (options.DisplayLinkToLastPage == PagedListDisplayMode.Always || (options.DisplayLinkToLastPage == PagedListDisplayMode.IfNeeded && lastPageToDisplay < list.PageCount))
+    {
+        var targetPageNumber = list.PageCount;
+
+        if (list.IsLastPage)
+        {
+            //FunctionToTransformEachPageLink
+
+            <li class="@pageli PagedList-skipToLast disabled">
+                <a class="@pageClasses @css">@targetPageNumber</a>
+            </li>
+        }
+        else
+        {
+            //FunctionToTransformEachPageLink
+
+            <li class="@pageli PagedList-skipToLast">
+                <a rel="last" class="@pageClasses @css" href="@cvr?page=@targetPageNumber">@targetPageNumber</a>
+            </li>
+        }
+    }
+
+    @*next*@
+    @if (options.DisplayLinkToNextPage == PagedListDisplayMode.Always || (options.DisplayLinkToNextPage == PagedListDisplayMode.IfNeeded && !list.IsLastPage))
+    {
+        var targetPageNumber = list.PageNumber + 1;
+
+        if (!list.HasNextPage)
+        {
+            //FunctionToTransformEachPageLink
+
+            <li class="@pageli @options.NextElementClass disabled">
+
+                <a class="@pageClasses @css">
+                    <span aria-hidden="true">&raquo;</span>
+                    <i class="fe fe-chevron-right" data-bs-toggle="tooltip" title="fe fe-chevron-right"></i>
+                </a>
+            </li>
+        }
+        else
+        {
+            //FunctionToTransformEachPageLink
+
+            <li class="@pageli @options.NextElementClass">
+                <a rel="next" class="@pageClasses @css" href="@cvr?page=@targetPageNumber">
+                    <span aria-hidden="true">&raquo;</span>
+                    <i class="fe fe-chevrons-right" data-bs-toggle="tooltip" title="fe fe-chevrons-right"></i>
+
+
+                </a>
+
+            </li>
+        }
+    }
+</ul>

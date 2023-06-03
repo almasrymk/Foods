@@ -22,7 +22,7 @@ namespace Repository.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Entity.Area", b =>
+            modelBuilder.Entity("FoodEntity.Models.Area", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -39,15 +39,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Areas");
                 });
 
-            modelBuilder.Entity("Entity.City", b =>
+            modelBuilder.Entity("FoodEntity.Models.City", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -67,15 +64,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Citys");
                 });
 
-            modelBuilder.Entity("Entity.Country", b =>
+            modelBuilder.Entity("FoodEntity.Models.Country", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -95,15 +89,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Countrys");
                 });
 
-            modelBuilder.Entity("Entity.District", b =>
+            modelBuilder.Entity("FoodEntity.Models.District", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -123,15 +114,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Districts");
                 });
 
-            modelBuilder.Entity("Entity.Gender", b =>
+            modelBuilder.Entity("FoodEntity.Models.Gender", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -148,15 +136,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Genders");
                 });
 
-            modelBuilder.Entity("Entity.Item", b =>
+            modelBuilder.Entity("FoodEntity.Models.Item", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -182,15 +167,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Items");
                 });
 
-            modelBuilder.Entity("Entity.ItemCategory", b =>
+            modelBuilder.Entity("FoodEntity.Models.ItemCategory", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -207,15 +189,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("ItemCategorys");
                 });
 
-            modelBuilder.Entity("Entity.ItemCountry", b =>
+            modelBuilder.Entity("FoodEntity.Models.ItemCountry", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -238,15 +217,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("ItemCountrys");
                 });
 
-            modelBuilder.Entity("Entity.ItemMael", b =>
+            modelBuilder.Entity("FoodEntity.Models.ItemMael", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -269,15 +245,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("ItemMaels");
                 });
 
-            modelBuilder.Entity("Entity.ItemRawMaterial", b =>
+            modelBuilder.Entity("FoodEntity.Models.ItemRawMaterial", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -300,15 +273,12 @@ namespace Repository.Migrations
                     b.Property<long>("RawMaterialUnitMeasureId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("ItemRawMaterials");
                 });
 
-            modelBuilder.Entity("Entity.Job", b =>
+            modelBuilder.Entity("FoodEntity.Models.Job", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -325,15 +295,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Jobs");
                 });
 
-            modelBuilder.Entity("Entity.Location", b =>
+            modelBuilder.Entity("FoodEntity.Models.Location", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -359,9 +326,6 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
@@ -370,7 +334,7 @@ namespace Repository.Migrations
                     b.ToTable("Locations");
                 });
 
-            modelBuilder.Entity("Entity.Mael", b =>
+            modelBuilder.Entity("FoodEntity.Models.Mael", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -387,15 +351,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Maels");
                 });
 
-            modelBuilder.Entity("Entity.Occasion", b =>
+            modelBuilder.Entity("FoodEntity.Models.Occasion", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -433,9 +394,6 @@ namespace Repository.Migrations
                     b.Property<long>("ReligionId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<int>("ToMonth")
                         .HasColumnType("int");
 
@@ -444,7 +402,7 @@ namespace Repository.Migrations
                     b.ToTable("Occasions");
                 });
 
-            modelBuilder.Entity("Entity.Order", b =>
+            modelBuilder.Entity("FoodEntity.Models.Order", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -457,9 +415,6 @@ namespace Repository.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("UserCreateDate")
                         .HasColumnType("datetime2");
@@ -481,7 +436,7 @@ namespace Repository.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Entity.OrderItem", b =>
+            modelBuilder.Entity("FoodEntity.Models.OrderItem", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -498,15 +453,12 @@ namespace Repository.Migrations
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("Entity.OrderRawMaterial", b =>
+            modelBuilder.Entity("FoodEntity.Models.OrderRawMaterial", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -523,15 +475,12 @@ namespace Repository.Migrations
                     b.Property<long>("RawMaterialId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("OrderRawMaterials");
                 });
 
-            modelBuilder.Entity("Entity.RawMaterial", b =>
+            modelBuilder.Entity("FoodEntity.Models.RawMaterial", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -551,15 +500,12 @@ namespace Repository.Migrations
                     b.Property<long>("RawMaterialCategoryId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("RawMaterials");
                 });
 
-            modelBuilder.Entity("Entity.RawMaterialCategory", b =>
+            modelBuilder.Entity("FoodEntity.Models.RawMaterialCategory", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -576,15 +522,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("RawMaterialCategorys");
                 });
 
-            modelBuilder.Entity("Entity.RawMaterialUnitMeasure", b =>
+            modelBuilder.Entity("FoodEntity.Models.RawMaterialUnitMeasure", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -613,9 +556,6 @@ namespace Repository.Migrations
                     b.Property<long>("RawMaterialId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<long>("UnitMeasureId")
                         .HasColumnType("bigint");
 
@@ -624,7 +564,7 @@ namespace Repository.Migrations
                     b.ToTable("RawMaterialUnitMeasures");
                 });
 
-            modelBuilder.Entity("Entity.RawMaterialUnitMeasurePrice", b =>
+            modelBuilder.Entity("FoodEntity.Models.RawMaterialUnitMeasurePrice", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -653,15 +593,12 @@ namespace Repository.Migrations
                     b.Property<long>("RawMaterialUnitMeasureId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("RawMaterialUnitMeasurePrices");
                 });
 
-            modelBuilder.Entity("Entity.Religion", b =>
+            modelBuilder.Entity("FoodEntity.Models.Religion", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -677,16 +614,13 @@ namespace Repository.Migrations
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.ToTable("Religions");
                 });
 
-            modelBuilder.Entity("Entity.UnitMeasure", b =>
+            modelBuilder.Entity("FoodEntity.Models.UnitMeasure", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -703,15 +637,12 @@ namespace Repository.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("UnitMeasures");
                 });
 
-            modelBuilder.Entity("Entity.User", b =>
+            modelBuilder.Entity("FoodEntity.Models.User", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -746,9 +677,6 @@ namespace Repository.Migrations
                     b.Property<long>("ReligionId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Users");
@@ -764,8 +692,7 @@ namespace Repository.Migrations
                             JobId = 0L,
                             NumberFamilyMembers = 0,
                             Password = "2C7SY4BTJAW8CaJoivJAUA==",
-                            ReligionId = 0L,
-                            Status = 0
+                            ReligionId = 0L
                         });
                 });
 #pragma warning restore 612, 618
