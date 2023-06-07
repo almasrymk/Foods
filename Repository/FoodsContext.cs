@@ -49,7 +49,7 @@ namespace Repository
             modelBuilder.Entity<User>().HasData(new User
             {
                 Id = 1,
-                FullName = "Admen",
+                FullName = "Admin",
                 Email = "memo_mad2007@hotmail.com",
                 Password = EncryptString.Encrypt("123456"),
             });
