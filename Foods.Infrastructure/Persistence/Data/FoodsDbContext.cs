@@ -2,8 +2,7 @@
 {
     using Microsoft.EntityFrameworkCore;
 
-    public class FoodsDbContext : DbContext
+    public class FoodsDbContext(DbContextOptions<FoodsDbContext> options) : DbContext(options)
     {
-        public FoodsDbContext(DbContextOptions<FoodsDbContext> options) : base(options) { }
     }
 }

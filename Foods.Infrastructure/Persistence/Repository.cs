@@ -1,21 +1,27 @@
 ﻿namespace Foods.Infrastructure.Persistence
 {
+    using Foods.Core;
     using Foods.Core.Interface;
-    using Microsoft.EntityFrameworkCore;
-    using Foods.Infrastructure.Persistence.Data;
     using System.Linq.Expressions;
-    using System.Collections.Immutable;
-    using System.Runtime.CompilerServices;
+    using Microsoft.EntityFrameworkCore;
+    using Foods.Infrastructure.Persistence.Data;    
 
-    public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
+    public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
     {
-        private FoodsDbContext dbContext;
-        private DbSet<TEntity> dbEntity;
+        private readonly FoodsDbContext dbContext;
+        private readonly DbSet<TEntity> dbEntity;
 
         public Repository(FoodsDbContext _dbContext)
         {
             dbContext = _dbContext;
             dbEntity = dbContext.Set<TEntity>();
+        }
+
+        public async ValueTask<bool> Commit()
+        {
+            if (await dbContext.SaveChangesAsync() > 0)
+                return true;
+            return false;
         }
 
         public virtual async ValueTask<TEntity> CreateAsync(TEntity Ob)
@@ -24,9 +30,17 @@
             return Ob;
         }
 
-        public virtual ValueTask<bool> DeleteAsync(Func<TEntity, bool> Filter)
+        public virtual async ValueTask<bool> DeleteAsync(Expression<Func<TEntity, bool>> Filter)
         {
-            throw new NotImplementedException();
+            var Ob = await dbEntity.FirstOrDefaultAsync(Filter);
+            if (Ob != null)
+            {
+                Ob.IsDeleted = true;
+                dbEntity.Attach(Ob);
+                return true;
+            }
+
+            return false;
         }
 
         public virtual async ValueTask<TEntity?> GetByFilterAsync(Expression<Func<TEntity, bool>> Filter)
@@ -34,24 +48,31 @@
             return await dbEntity.FirstOrDefaultAsync(Filter);
         }
 
-        public virtual async ValueTask<IEnumerable<TEntity>?> GetListByFilterAsync(Func<TEntity, bool> Filter)
+        public virtual async ValueTask<IEnumerable<TEntity>?> GetListByFilterAsync(Expression<Func<TEntity, bool>> Filter)
         {
             return await dbEntity.Where(Filter).AsQueryable().ToListAsync();
         }
 
-        public virtual async ValueTask<bool> ShiftDeleteAsync(Func<TEntity, bool> Filter)
+        public virtual async ValueTask<bool> ShiftDeleteAsync(Expression<Func<TEntity, bool>> Filter)
         {
-            throw new NotImplementedException();
+            var Ob = await dbEntity.FirstOrDefaultAsync(Filter);
+            if (Ob != null)
+            {
+                dbEntity.Remove(Ob);
+                return true;
+            }
+
+            return false;
         }
 
         public virtual async ValueTask<bool> UpdateAsync(TEntity Ob)
         {
-            if(await dbEntity.AnyAsync(e=>e == Ob))
+            if (await dbEntity.AnyAsync(e => e == Ob))
             {
                 dbEntity.Attach(Ob);
                 return true;
             }
-                
+
             return false;
         }
     }
