@@ -4,8 +4,8 @@
     using System.Threading.Tasks;
     using System.Linq.Expressions;
     using System.Collections.Generic;
-    using Foods.Core.Entity.MasterData.Content;
     using System.Diagnostics.CodeAnalysis;
+    using Foods.Core.Entity.MasterData.Content;
 
     public class ContentGroupService(IRepository<ContentGroup> repository) : IContentGroupService
     {
@@ -37,7 +37,12 @@
             return _repository.GetByFilterAsync(Filter);
         }
 
-        public ValueTask<IEnumerable<ContentGroup>?> GetListByFilter(Expression<Func<ContentGroup, bool>> Filter)
+        public ValueTask<IEnumerable<ContentGroup>?> GetListByFilter()
+        {
+            return _repository.GetListByFilterAsync();
+        }
+
+        public ValueTask<IEnumerable<ContentGroup>?> GetListByFilter(Expression<Func<ContentGroup, bool>>? Filter = null)
         {
             return _repository.GetListByFilterAsync(Filter);
         }

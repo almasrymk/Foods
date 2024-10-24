@@ -1,31 +1,50 @@
 namespace Foods.API.Controllers
 {
+    using Foods.Core.Interface;
     using Microsoft.AspNetCore.Mvc;
-    using System;
-    using System.Diagnostics.CodeAnalysis;
+    using Foods.Core.Entity.MasterData.Content;
 
-    /// <summary>
-    /// ,,n,,,m,,,n,
-    /// </summary>
-    /// <param name="logger"></param>
     [ApiController]
-    [Route("[controller]")]
-    public class ContentGroupController(ILogger<ContentGroupController> logger) : ControllerBase
+    [Route("[controller]/[action]")]
+    public class ContentGroupController(ILogger<ContentGroupController> logger, IContentGroupService contentGroupService) : ControllerBase
     {
-        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "<Pending>")]
         private readonly ILogger<ContentGroupController> _logger = logger;
+        private readonly IContentGroupService _contentGroupService = contentGroupService;
 
-        /// <summary>
-        /// llkllllll
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost(Name = "Save")]        
-        public IActionResult Save([FromBody] string model)
+        [HttpGet(Name = "GetList")]
+        public async Task<IActionResult> GetList()
         {
-            ArgumentNullException.ThrowIfNull(model);
+            var list = await _contentGroupService.GetListByFilter();
+            return Ok(list);
+        }
 
-            return Ok();
+        [HttpGet(Name = "Get")]
+        public async Task<IActionResult> Get(Guid Id)
+        {
+            var ob = await _contentGroupService.GetByFilter(e=>e.Id == Id);
+            return Ok(ob);
+        }
+
+        [HttpPost(Name = "Add")]
+        public async Task<IActionResult> Add(ContentGroup model)
+        {
+            var ob = await _contentGroupService.Save(model);
+            return Ok(ob);
+        }
+
+
+        [HttpPut(Name = "Edit")]
+        public async Task<IActionResult> Edit(Guid Id , ContentGroup model)
+        {
+            var ob = await _contentGroupService.Save(model);
+            return Ok(ob);
+        }
+
+        [HttpDelete(Name = "Delete")]
+        public async Task<IActionResult> Delete(Guid Id)
+        {
+            var ob = await _contentGroupService.Delete(e => e.Id == Id);
+            return Ok(ob);
         }
     }
 }

@@ -2,6 +2,7 @@ using Foods.Infrastructure;
 using Foods.Infrastructure.Persistence.Data;
 using Foods.Service;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -9,7 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.AddInfrastructureRegistration();
 builder.AddServiceRegistration();
-builder.Services.AddDbContext<FoodsDbContext>(options => options.UseSqlServer("FoodsDbContext"));
+builder.Services.AddDbContext<FoodsDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("FoodContext")));
 var app = builder.Build();
 
 app.UseSwagger();

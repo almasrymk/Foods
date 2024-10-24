@@ -48,6 +48,11 @@
             return await dbEntity.FirstOrDefaultAsync(Filter);
         }
 
+        public virtual async ValueTask<IEnumerable<TEntity>?> GetListByFilterAsync()
+        {
+            return await dbEntity.AsQueryable().ToListAsync();
+        }
+
         public virtual async ValueTask<IEnumerable<TEntity>?> GetListByFilterAsync(Expression<Func<TEntity, bool>> Filter)
         {
             return await dbEntity.Where(Filter).AsQueryable().ToListAsync();
