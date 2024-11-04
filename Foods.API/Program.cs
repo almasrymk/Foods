@@ -1,8 +1,8 @@
-using Foods.Infrastructure;
-using Foods.Infrastructure.Persistence.Data;
 using Foods.Service;
+using FluentValidation;
+using Foods.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Foods.Infrastructure.Persistence.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -11,6 +11,8 @@ builder.Services.AddSwaggerGen();
 builder.AddInfrastructureRegistration();
 builder.AddServiceRegistration();
 builder.Services.AddDbContext<FoodsDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("FoodContext")));
+builder.Services.AddMediatR(e=> e.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 var app = builder.Build();
 
 app.UseSwagger();
