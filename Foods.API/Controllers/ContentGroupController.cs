@@ -1,50 +1,19 @@
 namespace Foods.API.Controllers
 {
-    using Foods.Core.Interface;
+    using MediatR;
     using Microsoft.AspNetCore.Mvc;
-    using Foods.Core.Entity.MasterData.Content;
+    using Foods.Application.MasterData.Content.ContentCategory.Commands.Create;
 
     [ApiController]
     [Route("[controller]/[action]")]
-    public class ContentGroupController(ILogger<ContentGroupController> logger, IContentGroupService contentGroupService) : ControllerBase
+    public class ContentGroupController(ISender sender) : ControllerBase
     {
-        private readonly ILogger<ContentGroupController> _logger = logger;
-        private readonly IContentGroupService _contentGroupService = contentGroupService;
-
-        [HttpGet(Name = "GetList")]
-        public async Task<IActionResult> GetList()
+        [HttpPost(Name = "Create")]
+        public async Task<IActionResult> Create(CancellationToken cancellationToken)
         {
-            var list = await _contentGroupService.GetListByFilter();
-            return Ok(list);
-        }
-
-        [HttpGet(Name = "Get")]
-        public async Task<IActionResult> Get(Guid Id)
-        {
-            var ob = await _contentGroupService.GetByFilter(e=>e.Id == Id);
-            return Ok(ob);
-        }
-
-        [HttpPost(Name = "Add")]
-        public async Task<IActionResult> Add(ContentGroup model)
-        {
-            var ob = await _contentGroupService.Save(model);
-            return Ok(ob);
-        }
-
-
-        [HttpPut(Name = "Edit")]
-        public async Task<IActionResult> Edit(Guid Id , ContentGroup model)
-        {
-            var ob = await _contentGroupService.Save(model);
-            return Ok(ob);
-        }
-
-        [HttpDelete(Name = "Delete")]
-        public async Task<IActionResult> Delete(Guid Id)
-        {
-            var ob = await _contentGroupService.Delete(e => e.Id == Id);
-            return Ok(ob);
+            var ob = new CreateCommand("A+");
+            var res = sender.Send(ob, cancellationToken);
+            return res.IsCompletedSuccessfully ? Ok() : BadRequest();
         }
     }
 }

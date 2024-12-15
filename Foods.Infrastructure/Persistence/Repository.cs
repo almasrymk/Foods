@@ -1,7 +1,7 @@
 ﻿namespace Foods.Infrastructure.Persistence
 {
-    using Foods.Core;
-    using Foods.Core.Interface;
+    using Foods.Domain;
+    using Foods.Domain.Abstraction;
     using System.Linq.Expressions;
     using Microsoft.EntityFrameworkCore;
     using Foods.Infrastructure.Persistence.Data;    

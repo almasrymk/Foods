@@ -3,19 +3,15 @@
     using MediatR;
     using FluentValidation;    
 
-    public class RequestPipeLine<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+    public class RequestPipeLine<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
-        private readonly IEnumerable<IValidator<TRequest>> _validators;
-        public RequestPipeLine(IEnumerable<IValidator<TRequest>> validators)
-        {
-            _validators = validators;
-        }
+        private readonly IEnumerable<IValidator<TRequest>> _validators = validators;
 
         public Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var context = new ValidationContext<TRequest>(request);
             var failures = _validators.Select(e => e.Validate(context)).SelectMany(e=>e.Errors).Where(e=>e != null).ToList();
-            if (failures.Any())
+            if (failures.Count != 0)
                 throw new ValidationException(failures);
 
             return next();

@@ -1,12 +1,13 @@
 ﻿namespace Foods.Infrastructure.Persistence.Data
 {
-    using Foods.Core.Entity.MasterData;
+    using Foods.Domain.Entity.MasterData;
     using Microsoft.EntityFrameworkCore;
-    using Foods.Core.Entity.MasterData.Item;
-    using Foods.Core.Entity.MasterData.Content;
-    using Foods.Core.Entity.MasterData.TradeMark;
+    using Foods.Domain.Entity.MasterData.Item;
+    using Foods.Domain.Entity.MasterData.Content;
+    using Foods.Domain.Entity.MasterData.TradeMark;
+    using Foods.Domain.Abstraction;
 
-    public class FoodsDbContext(DbContextOptions<FoodsDbContext> options) : DbContext(options)
+    public class FoodsDbContext(DbContextOptions<FoodsDbContext> options) : DbContext(options) , IFoodsDbContext<FoodsDbContext>
     {
         public virtual DbSet<Content> Contents { get; set; }
         public virtual DbSet<ContentAlternative> ContentAlternatives { get; set; }
@@ -26,5 +27,11 @@
         public virtual DbSet<Level> Levels { get; set; }
         public virtual DbSet<Meal> Meals { get; set; }
         public virtual DbSet<Unit> Units { get; set; }
+
+        public FoodsDbContext CreateDbContext()
+        {
+            
+            throw new NotImplementedException();
+        }
     }
 }
