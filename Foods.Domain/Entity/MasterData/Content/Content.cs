@@ -1,6 +1,4 @@
-﻿using System.Security.Principal;
-
-namespace Foods.Domain.Entity.MasterData.Content
+﻿namespace Foods.Domain.Entity.MasterData.Content
 {
     public class Content : BaseMasterDataEntity
     {

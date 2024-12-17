@@ -1,13 +1,13 @@
 ﻿namespace Foods.Infrastructure.Persistence.Data
 {
-    using Foods.Domain.Entity.MasterData;
+    using Foods.Domain.Abstraction;
     using Microsoft.EntityFrameworkCore;
+    using Foods.Domain.Entity.MasterData;
     using Foods.Domain.Entity.MasterData.Item;
     using Foods.Domain.Entity.MasterData.Content;
     using Foods.Domain.Entity.MasterData.TradeMark;
-    using Foods.Domain.Abstraction;
-
-    public class FoodsDbContext(DbContextOptions<FoodsDbContext> options) : DbContext(options) , IFoodsDbContext<FoodsDbContext>
+    
+    public class FoodsDbContext(DbContextOptions<FoodsDbContext> options) : DbContext(options), IFoodsDbContext
     {
         public virtual DbSet<Content> Contents { get; set; }
         public virtual DbSet<ContentAlternative> ContentAlternatives { get; set; }
@@ -28,10 +28,19 @@
         public virtual DbSet<Meal> Meals { get; set; }
         public virtual DbSet<Unit> Units { get; set; }
 
-        public FoodsDbContext CreateDbContext()
+        public DbSet<TEntity> Set<TEntity>() where TEntity : class
         {
-            
-            throw new NotImplementedException();
+            return base.Set<TEntity>();
+        }
+
+        public override int SaveChanges()
+        {
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }
