@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="MasterData\Content\ContentCategory\Commands\Delete\" />
-    <Folder Include="MasterData\Content\ContentCategory\Commands\Update\" />
+    <Folder Include="MasterData\Content\ContentCategory\Queries\GetById\" />
+    <Folder Include="MasterData\Content\ContentCategory\Queries\Search\" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,6 @@
     using Foods.Domain.Abstraction;
     using System.Linq.Expressions;
     using Microsoft.EntityFrameworkCore;
-    using Foods.Infrastructure.Persistence.Data;
 
     public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
     {

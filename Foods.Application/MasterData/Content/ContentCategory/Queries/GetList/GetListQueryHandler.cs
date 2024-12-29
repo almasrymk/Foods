@@ -5,15 +5,14 @@
     using System.Threading.Tasks;
     using Foods.Domain.Abstraction;
     using System.Collections.Generic;
-    using Foods.Application.Abstraction.Query;
     using Foods.Domain.Entity.MasterData.Content;
+    using Foods.Application.Abstraction.QueryList;
 
-    internal class GetListQueryHandler(IRepository<ContentGroup> _IRepository) : IQueryListHandler<GetListQuery, GetListQueryResponse>
+    internal class GetListQueryHandler(IRepository<ContentGroup> _IRepository) : IQueryListHandler<GetListQuery, List<GetListQueryResponse>>
     {
-        public async Task<List<Result<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
+        public Task<List<Result<List<GetListQueryResponse>>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
-            var list = await _IRepository.GetListByFilterAsync();
-            return new List<Result<GetListQueryResponse>>();
+            throw new NotImplementedException();
         }
     }
 }
