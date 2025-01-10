@@ -9,11 +9,10 @@ namespace Foods.API.Controllers
     public class ContentGroupController(ISender sender) : ControllerBase
     {
         [HttpPost(Name = "Create")]
-        public async Task<IActionResult> Create(CancellationToken cancellationToken)
+        public async Task<IActionResult> Create(CreateCommand command ,CancellationToken cancellationToken)
         {
-            var ob = new CreateCommand("A+");
-            var res = sender.Send(ob, cancellationToken);
-            return res.IsCompletedSuccessfully ? Ok() : BadRequest();
+            var res = sender.Send(command, cancellationToken);
+            return res.IsCompletedSuccessfully ? Ok(res) : BadRequest(res);
         }
     }
 }

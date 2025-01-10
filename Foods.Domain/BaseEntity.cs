@@ -17,7 +17,7 @@
             return Id == entity.Id;
         }
 
-        public virtual Guid Id { get; private init; }
+        public virtual Guid Id { get; set; }
         public bool IsDeleted { get; set; }
         public int Status { get; set; }
     }

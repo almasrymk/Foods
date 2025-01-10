@@ -42,5 +42,9 @@
         {
             return base.SaveChangesAsync(cancellationToken);
         }
+        public override void Dispose()
+        {
+            //this.Dispose();
+        }
     }
 }

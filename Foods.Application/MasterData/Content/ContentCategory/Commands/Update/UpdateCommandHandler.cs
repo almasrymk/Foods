@@ -6,31 +6,33 @@
     using Foods.Domain.Abstraction;
     using Foods.Application.Abstraction.Command;
     using Foods.Domain.Entity.MasterData.Content;
-    using Foods.Application.MasterData.Content.ContentCategory.Commands.Create;
 
-    public sealed class UpdateCommandHandler(IUnitOfWork<ContentGroup> _IRepository) : ICommandHander<UpdateCommand, UpdateCommandResponse>
+    public sealed class UpdateCommandHandler(IUnitOfWork _UnitOfWork, IRepository<ContentGroup> _Repository) : ICommandHandler<UpdateCommand, UpdateCommandResponse>
     {
         public async Task<Result<UpdateCommandResponse>> Handle(UpdateCommand request, CancellationToken cancellationToken)
         {
-            try
-            {
-                var ob = await _IRepository._Repository.GetByFilterAsync(e => e.Id == request.Id);
-                if (ob == null)
-                    return null;
+            var ob = await _Repository.GetByFilterAsync(e => e.Id == request.Id);
+            if (ob == null)
+                return new Result<UpdateCommandResponse>(
+                    System.Net.HttpStatusCode.InternalServerError,
+                    null,
+                    new List<string> { "Error"});
 
-                ob.Name = request.Name;
-                
-                var res = await _IRepository._Repository.UpdateAsync(ob);
-                if (await _IRepository.SaveChangeAsync() > 0)
-                {
-                    return new Result<UpdateCommandResponse>();
-                }
-            }
-            catch (Exception ex)
+            ob.Name = request.Name;
+
+            var res = await _Repository.UpdateAsync(ob);
+            if (await _UnitOfWork.SaveChangeAsync() > 0)
             {
+                return new Result<UpdateCommandResponse>(
+                    System.Net.HttpStatusCode.OK,
+                    new UpdateCommandResponse(request.Id, request.Name),
+                    null);
             }
 
-            return null;
+            return new Result<UpdateCommandResponse>(
+                   System.Net.HttpStatusCode.InternalServerError,
+                   null,
+                   new List<string> { "Error" });
         }
     }
 }

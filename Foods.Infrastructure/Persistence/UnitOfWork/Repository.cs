@@ -1,8 +1,8 @@
 ﻿namespace Foods.Infrastructure.Persistence.UnitOfWork
 {
-    using Foods.Domain;
-    using Foods.Domain.Abstraction;
+    using Foods.Domain;  
     using System.Linq.Expressions;
+    using Foods.Domain.Abstraction;
     using Microsoft.EntityFrameworkCore;
 
     public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity

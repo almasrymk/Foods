@@ -15,9 +15,4 @@
     <ProjectReference Include="..\Foods.Domain\Foods.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="MasterData\Content\ContentCategory\Queries\GetById\" />
-    <Folder Include="MasterData\Content\ContentCategory\Queries\Search\" />
-  </ItemGroup>
-
 </Project>

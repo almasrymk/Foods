@@ -6,7 +6,7 @@
     using Foods.Domain.Entity.MasterData.Content;
     using Foods.Domain.Entity.MasterData.TradeMark;
     
-    public interface IFoodsDbContext
+    public interface IFoodsDbContext: IDisposable 
     {
         DbSet<Content> Contents { get; set; }
         DbSet<ContentAlternative> ContentAlternatives { get; set; }

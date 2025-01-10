@@ -1,8 +1,7 @@
 ﻿namespace Foods.Domain.Abstraction
 {
-    public interface IUnitOfWork<TEntity> : IDisposable where TEntity : BaseEntity
+    public interface IUnitOfWork : IDisposable 
     {
-        IRepository<TEntity> _Repository { get; }
         Task<int> SaveChangeAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -1,12 +1,7 @@
 ﻿namespace Foods.Domain.Shared
 {
-    public class Result
-    {
+    using System.Net;
 
-    }
-
-    public class Result<TResponse>
-    {
-
-    }
+    public partial record Result(HttpStatusCode StatusCode, List<string>? Errors);
+    public partial record Result<TResponse>(HttpStatusCode StatusCode, TResponse? Response, List<string>? Errors);
 }
