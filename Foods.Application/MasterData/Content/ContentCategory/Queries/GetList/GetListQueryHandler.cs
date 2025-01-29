@@ -8,14 +8,14 @@
     using Foods.Application.Abstraction.Query;
     using Foods.Domain.Entity.MasterData.Content;
 
-    public class GetListQueryHandler(IRepository<ContentGroup> _Repository) : IQueryListHandler<GetListQuery, List<GetListQueryResponse>>
+    public class GetListQueryHandler(IRepository<ContentCategory> _Repository) : IQueryListHandler<GetListQuery, List<GetListQueryResponse>>
     { 
         public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
             var list = await _Repository.GetListByFilterAsync(e => e.Name == request.Name || "" + request.Name == "");
 
             if (list == null)
-                list = new List<ContentGroup>();
+                list = new List<ContentCategory>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
                 list.Select(e=> new GetListQueryResponse(e.Id,e.Name!)).ToList()

@@ -7,14 +7,14 @@
     using Foods.Application.Abstraction.Query;
     using Foods.Domain.Entity.MasterData.Content;
 
-    public class GetByIdQueryHandler(IRepository<ContentGroup> _Repository) : IQueryHandler<GetByIdQuery, GetByIdQueryResponse>
+    public class GetByIdQueryHandler(IRepository<ContentCategory> _Repository) : IQueryHandler<GetByIdQuery, GetByIdQueryResponse>
     {
         public async Task<Result<GetByIdQueryResponse>> Handle(GetByIdQuery request, CancellationToken cancellationToken)
         {
             var Ob = await _Repository.GetByFilterAsync(e => e.Id == request.Id);
 
             if (Ob == null)
-                Ob = new ContentGroup();
+                Ob = new ContentCategory();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
                 new GetByIdQueryResponse(Ob.Id , Ob.Name!)
