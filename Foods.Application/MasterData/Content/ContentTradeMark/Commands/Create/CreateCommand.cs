@@ -2,8 +2,8 @@
 {
     using Foods.Application.Abstraction.Command;
 
-    public sealed record CreateCommand(string Name) : ICommand<CreateCommandResponse>;
+    public sealed record CreateCommand(Guid ContentId , Guid TradeMarkId) : ICommand<CreateCommandResponse>;
 
-    public sealed record CreateCommandResponse(Guid Id, string Name);
+    public sealed record CreateCommandResponse(Guid Id);
 
 }

@@ -9,7 +9,9 @@
     {
         public async Task<Result<List<SearchQueryResponse>>> Handle(SearchQuery request, CancellationToken cancellationToken)
         {
-            var list = await _Repository.GetListByFilterAsync(e => e.ContentId == request.ContentId || e.LevelId == request.LevelId);
+            var list = await _Repository.GetListByFilterAsync(e =>
+            (e.ContentId == request.ContentId || request.ContentId == null) &&
+            (e.LevelId == request.LevelId || request.LevelId == null));
 
             if (list == null)
                 list = new List<ContentLevel>();

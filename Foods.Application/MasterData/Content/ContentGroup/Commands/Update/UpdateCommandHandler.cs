@@ -16,9 +16,11 @@
                 return new Result<UpdateCommandResponse>(
                     System.Net.HttpStatusCode.InternalServerError,
                     null,
-                    new List<string> { "Error"});
+                    new List<string> { "Error" });
 
             ob.Name = request.Name;
+            ob.IsDeleted = false;
+            ob.Status = 0;
 
             var res = await _Repository.UpdateAsync(ob);
             if (await _UnitOfWork.SaveChangeAsync() > 0)

@@ -17,8 +17,11 @@
                 Ob = new ContentPrice();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
-                new GetByIdQueryResponse(Ob.Id , ""/*Ob.Name!*/)
-                , null);
+                new GetByIdQueryResponse(
+                    Ob.Id , 
+                    Ob.ContentId , 
+                    Ob.Price , 
+                    Ob.IsCurrent), null);
         }
     }
 }

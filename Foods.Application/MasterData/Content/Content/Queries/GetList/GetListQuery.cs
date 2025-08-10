@@ -2,7 +2,7 @@
 {
     using Foods.Application.Abstraction.Query;
 
-    public sealed record GetListQuery(string Name) : IQuery<List<GetListQueryResponse>>;
+    public sealed record GetListQuery(Guid? ContentCategoryId, Guid? ContentGroupId) : IQuery<List<GetListQueryResponse>>;
 
-    public sealed record GetListQueryResponse(Guid Id , string Name);
+    public sealed record GetListQueryResponse(Guid Id, string Name, Guid ContentCategoryId, Guid ContentGroupId, Guid UnitId, decimal MiniQuantity);
 }

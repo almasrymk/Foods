@@ -20,6 +20,8 @@
 
             ob.ContentId = request.ContentId;
             ob.LevelId = request.LevelId;
+            ob.IsDeleted = false;
+            ob.Status = 0;
 
             var res = await _Repository.UpdateAsync(ob);
             if (await _UnitOfWork.SaveChangeAsync() > 0)

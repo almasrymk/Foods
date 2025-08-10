@@ -2,7 +2,7 @@
 {
     using Foods.Application.Abstraction.Query;
 
-    public sealed record SearchQuery(string txtSearch) : IQuery<List<SearchQueryResponse>>;
+    public sealed record SearchQuery(Guid? ContentId, Guid? TradeMarkId) : IQuery<List<SearchQueryResponse>>;
 
-    public sealed record SearchQueryResponse(Guid Id, string Name);
+    public sealed record SearchQueryResponse(Guid Id, Guid ContentId, Guid TradeMarkId);
 }

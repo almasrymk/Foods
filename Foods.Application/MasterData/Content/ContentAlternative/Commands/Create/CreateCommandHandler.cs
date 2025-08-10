@@ -17,7 +17,8 @@
             var ob = new ContentAlternative
             {
                 Id = new Guid(),
-                //Name = request.Name,
+                ContentId = request.ContentId,
+                ContentAlternativeId = request.ContentAlternativeId,
                 IsDeleted = false,
                 Status = 0
             };
@@ -27,7 +28,7 @@
             {
                 return new Result<CreateCommandResponse>(
                     HttpStatusCode.OK,
-                    new CreateCommandResponse(res.Id, ""  /*res.Name!*/),
+                    new CreateCommandResponse(res.Id),
                     null);
             }
 

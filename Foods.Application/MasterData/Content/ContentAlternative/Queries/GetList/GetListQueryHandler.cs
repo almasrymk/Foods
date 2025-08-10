@@ -12,14 +12,19 @@
     { 
         public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
-            var list = await _Repository.GetListByFilterAsync(e => /*e.Name == request.Name ||*/ "" + request.Name == "");
+            var list = await _Repository.GetListByFilterAsync(e => 
+            (e.ContentId == request.ContentId || request.ContentId == null) &&
+            (e.ContentAlternativeId == request.ContentAlternativeId || request.ContentAlternativeId == null) 
+            );
 
             if (list == null)
                 list = new List<ContentAlternative>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(e.Id,""/*e.Name!*/)).ToList()
-                , null);
+                list.Select(e=> new GetListQueryResponse(
+                    e.Id,
+                    e.ContentId , 
+                    e.ContentAlternativeId)).ToList(), null);
         }
     }
 }

@@ -2,8 +2,8 @@
 {
     using Foods.Application.Abstraction.Command;
     
-    public sealed record UpdateCommand(Guid Id, string Name) : ICommand<UpdateCommandResponse>;
+    public sealed record UpdateCommand(Guid Id, string Name, Guid ContentCategoryId, Guid ContentGroupId, Guid UnitId, decimal MiniQuantity) : ICommand<UpdateCommandResponse>;
 
-    public sealed record UpdateCommandResponse(Guid Id, string Name);
+    public sealed record UpdateCommandResponse(Guid Id);
 
 }

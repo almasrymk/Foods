@@ -9,17 +9,26 @@
     using Foods.Domain.Entity.MasterData.Content;
 
     public class GetListQueryHandler(IRepository<Content> _Repository) : IQueryListHandler<GetListQuery, List<GetListQueryResponse>>
-    { 
+    {
         public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
-            var list = await _Repository.GetListByFilterAsync(e => e.Name == request.Name || "" + request.Name == "");
+            var list = await _Repository.GetListByFilterAsync(e=>
+            (e.ContentCategoryId == request.ContentCategoryId || request.ContentCategoryId == null) &&
+            (e.ContentGroupId == request.ContentGroupId || request.ContentGroupId == null) 
+            );
 
             if (list == null)
                 list = new List<Content>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(e.Id,e.Name!)).ToList()
-                , null);
+                list.Select(e => new GetListQueryResponse(
+                    e.Id,
+                    e.Name!,
+                    e.ContentCategoryId,
+                    e.ContentGroupId,
+                    e.UnitId,
+                    e.MiniQuantity
+                    )).ToList(), null);
         }
     }
 }

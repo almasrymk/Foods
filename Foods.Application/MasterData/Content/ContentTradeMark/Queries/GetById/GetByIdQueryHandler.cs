@@ -17,7 +17,7 @@
                 Ob = new ContentTradeMark();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
-                new GetByIdQueryResponse(Ob.Id , ""/*Ob.Name!*/)
+                new GetByIdQueryResponse(Ob.Id , Ob.ContentId , Ob.TradeMarkId)
                 , null);
         }
     }

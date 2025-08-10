@@ -18,14 +18,17 @@
                     null,
                     new List<string> { "Error"});
 
-            //ob.Name = request.Name;
+            ob.ContentId = request.ContentId;
+            ob.TradeMarkId = request.TradeMarkId;
+            ob.IsDeleted = false;
+            ob.Status = 0;
 
             var res = await _Repository.UpdateAsync(ob);
             if (await _UnitOfWork.SaveChangeAsync() > 0)
             {
                 return new Result<UpdateCommandResponse>(
                     System.Net.HttpStatusCode.OK,
-                    new UpdateCommandResponse(request.Id, request.Name),
+                    new UpdateCommandResponse(request.Id, request.ContentId , request.TradeMarkId),
                     null);
             }
 
