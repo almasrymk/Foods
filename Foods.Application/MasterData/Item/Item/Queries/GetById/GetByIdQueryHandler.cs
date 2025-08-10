@@ -17,7 +17,7 @@
                 Ob = new Item();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
-                new GetByIdQueryResponse(Ob.Id , Ob.Name!)
+                new GetByIdQueryResponse(Ob.Id , Ob.Name! , Ob.ItemCategoryId , Ob.ItemGroupId , Ob.Summary , Ob.Description)
                 , null);
         }
     }
