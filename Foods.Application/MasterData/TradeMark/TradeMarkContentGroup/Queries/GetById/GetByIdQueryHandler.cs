@@ -17,7 +17,7 @@
                 Ob = new TradeMarkContentGroup();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
-                new GetByIdQueryResponse(Ob.Id , Ob.Name!)
+                new GetByIdQueryResponse(Ob.Id , Ob.Name! , Ob.TradeMarkId , Ob.ContentGroupId)
                 , null);
         }
     }

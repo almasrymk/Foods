@@ -27,7 +27,7 @@
             {
                 return new Result<CreateCommandResponse>(
                     HttpStatusCode.OK,
-                    new CreateCommandResponse(res.Id, res.Name!),
+                    new CreateCommandResponse(res.Id),
                     null);
             }
 

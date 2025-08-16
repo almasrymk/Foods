@@ -19,13 +19,14 @@
                     new List<string> { "Error"});
 
             ob.Name = request.Name;
+            ob.Description = request.Description;
 
             var res = await _Repository.UpdateAsync(ob);
             if (await _UnitOfWork.SaveChangeAsync() > 0)
             {
                 return new Result<UpdateCommandResponse>(
                     System.Net.HttpStatusCode.OK,
-                    new UpdateCommandResponse(request.Id, request.Name),
+                    new UpdateCommandResponse(request.Id),
                     null);
             }
 

@@ -12,14 +12,18 @@
     { 
         public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
-            var list = await _Repository.GetListByFilterAsync(e => e.Name == request.Name || "" + request.Name == "");
+            var list = await _Repository.GetListByFilterAsync();
 
             if (list == null)
                 list = new List<Unit>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(e.Id,e.Name!)).ToList()
-                , null);
+                list.Select(e=> new GetListQueryResponse(
+                    e.Id,
+                    e.Name!,
+                    e.NickName,
+                    e.BasicQuantity,
+                    e.BeDivided)).ToList(), null);
         }
     }
 }

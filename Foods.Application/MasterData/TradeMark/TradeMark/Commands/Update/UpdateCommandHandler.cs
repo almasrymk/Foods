@@ -25,7 +25,7 @@
             {
                 return new Result<UpdateCommandResponse>(
                     System.Net.HttpStatusCode.OK,
-                    new UpdateCommandResponse(request.Id, request.Name),
+                    new UpdateCommandResponse(request.Id),
                     null);
             }
 

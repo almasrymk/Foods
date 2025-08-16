@@ -4,6 +4,6 @@
 
     public sealed record CreateCommand(string Name) : ICommand<CreateCommandResponse>;
 
-    public sealed record CreateCommandResponse(Guid Id, string Name);
+    public sealed record CreateCommandResponse(Guid Id);
 
 }

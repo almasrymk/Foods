@@ -2,8 +2,8 @@
 {
     using Foods.Application.Abstraction.Command;
 
-    public sealed record CreateCommand(string Name) : ICommand<CreateCommandResponse>;
+    public sealed record CreateCommand(string Name, string? NickName , decimal BasicQuantity , bool BeDivided) : ICommand<CreateCommandResponse>;
 
-    public sealed record CreateCommandResponse(Guid Id, string Name);
+    public sealed record CreateCommandResponse(Guid Id);
 
 }

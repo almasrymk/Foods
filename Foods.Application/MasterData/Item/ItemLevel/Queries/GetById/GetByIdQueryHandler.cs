@@ -17,8 +17,10 @@
                 Ob = new ItemLevel();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
-                new GetByIdQueryResponse(Ob.Id , "" /*Ob.Name!*/)
-                , null);
+                new GetByIdQueryResponse(
+                    Ob.Id , 
+                    Ob.ItemId,
+                    Ob.LevelId), null);
         }
     }
 }

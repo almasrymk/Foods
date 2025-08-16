@@ -18,6 +18,8 @@
             {
                 Id = new Guid(),
                 Name = request.Name,
+                ContentGroupId = request.ContentGroupId,
+                TradeMarkId  = request.TradeMarkId,
                 IsDeleted = false,
                 Status = 0
             };
@@ -27,7 +29,7 @@
             {
                 return new Result<CreateCommandResponse>(
                     HttpStatusCode.OK,
-                    new CreateCommandResponse(res.Id, res.Name!),
+                    new CreateCommandResponse(res.Id),
                     null);
             }
 

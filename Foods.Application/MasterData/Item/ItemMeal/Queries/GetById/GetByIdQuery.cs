@@ -4,5 +4,5 @@
 
     public sealed record GetByIdQuery(Guid Id) : IQuery<GetByIdQueryResponse>;
 
-    public sealed record GetByIdQueryResponse(Guid Id, string Name);
+    public sealed record GetByIdQueryResponse(Guid Id, Guid ItemId, Guid MealId);
 }

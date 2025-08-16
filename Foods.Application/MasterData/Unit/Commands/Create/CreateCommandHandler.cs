@@ -18,6 +18,9 @@
             {
                 Id = new Guid(),
                 Name = request.Name,
+                NickName = request.NickName,
+                BasicQuantity = request.BasicQuantity,
+                BeDivided = request.BeDivided,
                 IsDeleted = false,
                 Status = 0
             };
@@ -27,7 +30,7 @@
             {
                 return new Result<CreateCommandResponse>(
                     HttpStatusCode.OK,
-                    new CreateCommandResponse(res.Id, res.Name!),
+                    new CreateCommandResponse(res.Id),
                     null);
             }
 

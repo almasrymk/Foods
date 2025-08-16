@@ -9,13 +9,16 @@
     {
         public async Task<Result<List<SearchQueryResponse>>> Handle(SearchQuery request, CancellationToken cancellationToken)
         {
-            var list = await _Repository.GetListByFilterAsync(e => ("" + e.Name).ToLower().Contains(("" + request.txtSearch).ToLower()));
+            var list = await _Repository.GetListByFilterAsync(e => 
+            (("" + e.Name).ToLower().Contains(("" + request.TextSearch).ToLower()) || request.TextSearch == "") &&
+            (e.ContentGroupId == request.ContentGroupId || "" + request.ContentGroupId == "") &&
+            (e.TradeMarkId == request.TradeMarkId || "" + request.TradeMarkId == ""));
 
             if (list == null)
                 list = new List<TradeMarkContentGroup>();
 
             return new Result<List<SearchQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e => new SearchQueryResponse(e.Id, e.Name!)).ToList()
+                list.Select(e => new SearchQueryResponse(e.Id, e.Name!, e.TradeMarkId, e.ContentGroupId)).ToList()
                 , null);
         }
     }
