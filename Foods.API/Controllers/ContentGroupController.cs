@@ -2,12 +2,12 @@ namespace Foods.API.Controllers
 {
     using MediatR;
     using Microsoft.AspNetCore.Mvc;
+    using Foods.Application.MasterData.Content.ContentCategory.Queries.Search;
     using Foods.Application.MasterData.Content.ContentCategory.Commands.Create;
     using Foods.Application.MasterData.Content.ContentCategory.Commands.Update;
     using Foods.Application.MasterData.Content.ContentCategory.Commands.Delete;
     using Foods.Application.MasterData.Content.ContentCategory.Queries.GetById;
     using Foods.Application.MasterData.Content.ContentCategory.Queries.GetList;
-    using Foods.Application.MasterData.Content.ContentCategory.Queries.Search;
 
     [ApiController]
     [Route("[controller]/[action]")]
@@ -41,12 +41,12 @@ namespace Foods.API.Controllers
             return res.IsCompletedSuccessfully ? Ok(res) : BadRequest(res);
         }
 
-        [HttpGet(Name = "GetList")]
-        public async Task<IActionResult> GetList(string Name, CancellationToken cancellationToken)
-        {
-            var res = sender.Send(new GetListQuery(Name), cancellationToken);
-            return res.IsCompletedSuccessfully ? Ok(res) : BadRequest(res);
-        }
+        //[HttpGet(Name = "GetList")]
+        //public async Task<IActionResult> GetList(string Name, CancellationToken cancellationToken)
+        //{
+        //    var res = null;// sender.Send(new GetListQuery(Name), cancellationToken);
+        //    return res.IsCompletedSuccessfully ? Ok(res) : BadRequest(res);
+        //}
 
         [HttpGet(Name = "Search")]
         public async Task<IActionResult> Search(string txtSearch, CancellationToken cancellationToken)
