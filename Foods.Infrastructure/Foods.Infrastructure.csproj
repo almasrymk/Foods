@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Foods.Application\Foods.Application.csproj" />
     <ProjectReference Include="..\Foods.Domain\Foods.Domain.csproj" />
   </ItemGroup>
 

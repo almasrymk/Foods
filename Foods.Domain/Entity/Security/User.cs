@@ -1,6 +1,6 @@
 ﻿namespace Foods.Domain.Entity.Security
 {
-    public class Users : BaseMasterDataEntity
+    public class User : BaseMasterDataEntity
     {
         public Guid RoleId { get; set; }
         public string? UserName { get; set; }
