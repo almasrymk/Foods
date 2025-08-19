@@ -22,8 +22,7 @@
                     (
                        user.Id,
                        user.Name!,
-                       user.UserName!,
-                       user.RoleId,
+                       user.UserName!,                      
                        user.ImagePath,
                        _JwtTokenGenerator.GenerateToken(user.UserName!)
                     ), null);
