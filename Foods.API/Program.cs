@@ -13,6 +13,7 @@ using Foods.Infrastructure.Persistence.Jwt;
 using Foods.Infrastructure.Persistence.Data;
 using Foods.Infrastructure.Persistence.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+Log.Logger = new LoggerConfiguration().WriteTo.Console().WriteTo.File(builder.Configuration["Log:Path"]!, rollingInterval: RollingInterval.Day).CreateLogger();
+builder.Host.UseSerilog();
+
 builder.Services.AddMvc();
 
 var app = builder.Build();
