@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <DocumentationFile>bin\Debug\net8.0\ddd.xml</DocumentationFile>
+    <UserSecretsId>a1d68821-d847-4ba4-aa11-94fac8e29e20</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

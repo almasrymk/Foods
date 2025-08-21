@@ -9,7 +9,7 @@
     using Foods.Application.Abstraction.Jwt;
     using Foods.Application.Abstraction.Command;
 
-    public sealed class RegisterCommandHandler(IRepository<User> _Repository, IJwtTokenGenerator _JwtTokenGenerator) : ICommandHandler<RegisterCommand, RegisterCommandResponse>
+    public sealed class RegisterCommandHandler(IRepository<User> _Repository, ITokenProvider tokenProvider) : ICommandHandler<RegisterCommand, RegisterCommandResponse>
     {
         public async Task<Result<RegisterCommandResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
@@ -37,7 +37,7 @@
                        user.Name!,
                        user.UserName!,
                        user.ImagePath,
-                       user.Token = _JwtTokenGenerator.GenerateToken(user.UserName!)
+                       tokenProvider.CreateToken(user.Id, user.UserName!)
                     ), null);
                 }
 
