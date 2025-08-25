@@ -1,3 +1,4 @@
+using Serilog;
 using System.Text;
 using FluentValidation;
 using Foods.Application;
@@ -13,7 +14,6 @@ using Foods.Infrastructure.Persistence.Jwt;
 using Foods.Infrastructure.Persistence.Data;
 using Foods.Infrastructure.Persistence.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +27,8 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Foods API", Version = "v1" });
+
+    c.CustomSchemaIds(type => type.FullName);
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
