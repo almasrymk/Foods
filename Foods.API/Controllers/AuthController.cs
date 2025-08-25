@@ -3,7 +3,6 @@
     using MediatR;
     using System.Threading;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Authorization;
     using Foods.Application.Security.Queries.Create;
 
     [ApiController]
@@ -29,13 +28,6 @@
         {
             var res = await sender.Send(request, cancellationToken);
             return res.StatusCode == System.Net.HttpStatusCode.OK ? Ok(res) : BadRequest(res);
-        }
-
-        [Authorize]
-        [HttpGet("TestAuthorize")]
-        public IActionResult Test()
-        {
-            return Ok();
         }
     }
 }
