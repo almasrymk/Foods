@@ -12,7 +12,10 @@
     { 
         public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
-            var list = await _Repository.GetListByFilterAsync();
+            var list = await _Repository.GetListByFilterAsync(e =>
+            (e.ItemId == request.ItemId || "" + request.ItemId == "") &&
+            (e.ContentId == request.ContentId || "" + request.ContentId == "") &&
+            (e.UnitId == request.UnitId || "" + request.UnitId == ""));
 
             if (list == null)
                 list = new List<ItemContent>();

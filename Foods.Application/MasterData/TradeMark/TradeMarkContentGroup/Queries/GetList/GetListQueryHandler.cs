@@ -12,7 +12,9 @@
     { 
         public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
-            var list = await _Repository.GetListByFilterAsync();
+            var list = await _Repository.GetListByFilterAsync(e =>
+            (e.ContentGroupId == request.ContentGroupId || "" + request.ContentGroupId == "") &&
+            (e.TradeMarkId == request.TradeMarkId || "" + request.TradeMarkId == ""));
 
             if (list == null)
                 list = new List<TradeMarkContentGroup>();

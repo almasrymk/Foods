@@ -1,15 +1,17 @@
-﻿using MediatR;
-using System.Net;
-using Microsoft.AspNetCore.Mvc;
-using Foods.Application.MasterData.Content.ContentLevel.Queries.Search;
-using Foods.Application.MasterData.Content.ContentLevel.Queries.GetById;
-using Foods.Application.MasterData.Content.ContentLevel.Commands.Create;
-using Foods.Application.MasterData.Content.ContentLevel.Commands.Update;
-using Foods.Application.MasterData.Content.ContentLevel.Queries.GetList;
-using Foods.Application.MasterData.Content.ContentLevel.Commands.Delete;
-
-namespace Foods.API.Controllers.MasterData.Content
+﻿namespace Foods.API.Controllers.MasterData.Content
 {
+    using MediatR;
+    using System.Net;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Authorization;
+    using Foods.Application.MasterData.Content.ContentLevel.Queries.Search;
+    using Foods.Application.MasterData.Content.ContentLevel.Queries.GetById;
+    using Foods.Application.MasterData.Content.ContentLevel.Commands.Create;
+    using Foods.Application.MasterData.Content.ContentLevel.Commands.Update;
+    using Foods.Application.MasterData.Content.ContentLevel.Queries.GetList;
+    using Foods.Application.MasterData.Content.ContentLevel.Commands.Delete;
+
+    [Authorize]
     [ApiController]
     [Route("[controller]/[action]")]
     public class ContentLevelController(ISender sender) : ControllerBase

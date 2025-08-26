@@ -1,15 +1,17 @@
-﻿using MediatR;
-using System.Net;
-using Microsoft.AspNetCore.Mvc;
-using Foods.Application.MasterData.Content.ContentGroup.Queries.Search;
-using Foods.Application.MasterData.Content.ContentGroup.Queries.GetById;
-using Foods.Application.MasterData.Content.ContentGroup.Commands.Create;
-using Foods.Application.MasterData.Content.ContentGroup.Commands.Update;
-using Foods.Application.MasterData.Content.ContentGroup.Queries.GetList;
-using Foods.Application.MasterData.Content.ContentGroup.Commands.Delete;
-
-namespace Foods.API.Controllers.MasterData.Content
+﻿namespace Foods.API.Controllers.MasterData.Content
 {
+    using MediatR;
+    using System.Net;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Authorization;
+    using Foods.Application.MasterData.Content.ContentGroup.Queries.Search;
+    using Foods.Application.MasterData.Content.ContentGroup.Queries.GetById;
+    using Foods.Application.MasterData.Content.ContentGroup.Commands.Create;
+    using Foods.Application.MasterData.Content.ContentGroup.Commands.Update;
+    using Foods.Application.MasterData.Content.ContentGroup.Queries.GetList;
+    using Foods.Application.MasterData.Content.ContentGroup.Commands.Delete;
+
+    [Authorize]
     [ApiController]
     [Route("[controller]/[action]")]
     public class ContentGroupController(ISender sender) : ControllerBase

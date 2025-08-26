@@ -1,15 +1,17 @@
-﻿using MediatR;
-using System.Net;
-using Microsoft.AspNetCore.Mvc;
-using Foods.Application.MasterData.Content.ContentPrice.Queries.Search;
-using Foods.Application.MasterData.Content.ContentPrice.Queries.GetById;
-using Foods.Application.MasterData.Content.ContentPrice.Commands.Create;
-using Foods.Application.MasterData.Content.ContentPrice.Commands.Update;
-using Foods.Application.MasterData.Content.ContentPrice.Queries.GetList;
-using Foods.Application.MasterData.Content.ContentPrice.Commands.Delete;
-
-namespace Foods.API.Controllers.MasterData.Content
+﻿namespace Foods.API.Controllers.MasterData.Content
 {
+    using MediatR;
+    using System.Net;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Authorization;
+    using Foods.Application.MasterData.Content.ContentPrice.Queries.Search;
+    using Foods.Application.MasterData.Content.ContentPrice.Queries.GetById;
+    using Foods.Application.MasterData.Content.ContentPrice.Commands.Create;
+    using Foods.Application.MasterData.Content.ContentPrice.Commands.Update;
+    using Foods.Application.MasterData.Content.ContentPrice.Queries.GetList;
+    using Foods.Application.MasterData.Content.ContentPrice.Commands.Delete;
+
+    [Authorize]
     [ApiController]
     [Route("[controller]/[action]")]
     public class ContentPriceController(ISender sender) : ControllerBase
