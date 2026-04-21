@@ -11,6 +11,17 @@
 
     public class FoodsDbContext(DbContextOptions<FoodsDbContext> options) : DbContext(options), IFoodsDbContext
     {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = new Guid("92d19009-cb05-4645-a209-552c3e522a56"), Name = "Admin" }
+            );
+
+            modelBuilder.Entity<User>().HasData(
+                new User { Id = new Guid("111d7bfe-8dda-4af9-b651-f4a8d9008b94"), Name = "Admin", UserName = "Admin" , Password = "1"  , RoleId = new Guid("92d19009-cb05-4645-a209-552c3e522a56") }
+            );
+        }
+
         #region MasterData
         #region Content
         public virtual DbSet<Content> Contents { get; set; }

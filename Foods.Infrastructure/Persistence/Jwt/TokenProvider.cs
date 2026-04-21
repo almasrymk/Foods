@@ -13,7 +13,7 @@
         public string CreateToken(Guid Id , string UserName)
         {
             logger.LogInformation("Start Create Token");
-            string secretKey = configuration["Jwt:Secret"]!;
+            string secretKey = configuration["Jwt:Key"]!;
             var securitytKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(securitytKey, SecurityAlgorithms.HmacSha256);
             var TokenDescriptore = new SecurityTokenDescriptor

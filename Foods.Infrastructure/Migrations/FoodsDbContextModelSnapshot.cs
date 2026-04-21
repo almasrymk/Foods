@@ -611,6 +611,15 @@ namespace Foods.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("92d19009-cb05-4645-a209-552c3e522a56"),
+                            IsDeleted = false,
+                            Name = "Admin",
+                            Status = 0
+                        });
                 });
 
             modelBuilder.Entity("Foods.Domain.Entity.Security.RolePermission", b =>
@@ -669,6 +678,18 @@ namespace Foods.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("111d7bfe-8dda-4af9-b651-f4a8d9008b94"),
+                            IsDeleted = false,
+                            Name = "Admin",
+                            Password = "1",
+                            RoleId = new Guid("92d19009-cb05-4645-a209-552c3e522a56"),
+                            Status = 0,
+                            UserName = "Admin"
+                        });
                 });
 #pragma warning restore 612, 618
         }
