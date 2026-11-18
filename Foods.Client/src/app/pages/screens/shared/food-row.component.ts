@@ -12,7 +12,7 @@ import { egp } from '../../../core/money';
   selector: 'fa-food-row',
   imports: [RouterLink, FaIconComponent, FaPhotoSliderComponent],
   template: `
-    <article class="fa-row" [class.sel-green]="greenSelection && selected" [class.priced]="item.price != null">
+    <article class="fa-row" [class.sel-green]="greenSelection && selected" [class.priced]="item.price != null" [class.has-cuisine]="!!item.cuisine">
       <a class="fa-row-img" [routerLink]="['/items', item.id]" [queryParams]="cuisineId ? { cuisine: cuisineId } : null">
         @if ((item.images?.length || 0) > 1) {
           <fa-photo-slider [images]="item.images" [alt]="item.title" [fallback]="item.image" />
@@ -21,8 +21,16 @@ import { egp } from '../../../core/money';
         }
         @if (selected) { <span class="fa-badge"><fa-icon name="check" [weight]="3" /></span> }
       </a>
-      <span class="fa-tag"><fa-icon [name]="item.tagIcon" [weight]="1.8" />{{ item.tag }}</span>
+      @if (item.group || item.category) {
+        <div class="fa-tags">
+          @if (item.group) { <span class="fa-tag2 group"><fa-icon name="layers" [weight]="1.8" />{{ item.group }}</span> }
+          @if (item.category) { <span class="fa-tag2 category"><fa-icon name="grid" [weight]="1.8" />{{ item.category }}</span> }
+        </div>
+      } @else {
+        <span class="fa-tag"><fa-icon [name]="item.tagIcon" [weight]="1.8" />{{ item.tag }}</span>
+      }
       <a class="fa-row-title" [routerLink]="['/items', item.id]" [queryParams]="cuisineId ? { cuisine: cuisineId } : null">{{ item.title }}</a>
+      @if (item.cuisine) { <span class="fa-row-cuisine"><fa-icon [name]="item.tagIcon" [weight]="1.8" />{{ item.cuisine }}</span> }
       <p class="fa-row-desc">{{ item.desc }}</p>
       @if ((item.price || 0) > 0) {
         <span class="fa-row-price"><fa-icon name="tag" [weight]="2.2" />{{ money(item.price) }}{{ item.priceMissing ? ' +' : '' }}</span>

@@ -212,3 +212,27 @@ body.ps-open .fa-summary, body.ps-open fa-tab-bar, body.ps-open fa-selected-shee
 
 /* prices on, but no ingredient of the dish has a price yet */
 .fa-row-price.none { background: #FFF1E2; border-color: #F9CF9F; color: #C45A00; }
+
+/* list rows: المجموعة then التصنيف on top, the cuisine under the name, the counter fixed at the bottom */
+.fa-tags { position: absolute; right: calc(226 * var(--s)); top: calc(9 * var(--s)); display: flex; flex-direction: row; gap: calc(6 * var(--s)); }
+.fa-tag2 {
+  height: calc(34 * var(--s)); padding: 0 calc(12 * var(--s));
+  display: flex; align-items: center; gap: calc(6 * var(--s)); border-radius: calc(17 * var(--s));
+  font-size: calc(19 * var(--s)); font-weight: 800; white-space: nowrap;
+}
+.fa-tag2 fa-icon { font-size: calc(22 * var(--s)); }
+.fa-tag2.group { background: #EDE7FA; color: #5B3FA6; }
+.fa-tag2.category { background: #FFEEDC; color: #C75A06; }
+.fa-row-cuisine {
+  position: absolute; right: calc(226 * var(--s)); top: calc(90 * var(--s));
+  height: calc(32 * var(--s)); padding: 0 calc(12 * var(--s));
+  display: flex; align-items: center; gap: calc(6 * var(--s)); border-radius: calc(16 * var(--s));
+  background: #EAF4D9; color: var(--fa-green); font-size: calc(18 * var(--s)); font-weight: 800; white-space: nowrap;
+}
+.fa-row-cuisine fa-icon { font-size: calc(22 * var(--s)); }
+.fa-row.has-cuisine { height: calc(208 * var(--s)); }
+.fa-row.has-cuisine .fa-row-desc { top: calc(128 * var(--s)); }
+.fa-row.has-cuisine .fa-row-price { top: calc(158 * var(--s)); }
+.fa-row.has-cuisine.priced { height: calc(206 * var(--s)); }
+.fa-row.has-cuisine.priced .fa-row-desc { -webkit-line-clamp: 1; top: calc(128 * var(--s)); }
+.fa-row .fa-stepper { top: auto; bottom: calc(22 * var(--s)); }

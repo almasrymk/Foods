@@ -52,6 +52,23 @@
             return new PriceBook(db, userId, units, OrderCalculator.HouseholdFactor(family, bands), countryId, currency);
         }
 
+        /// <summary>
+        /// Weight / volume units (جرام، ملليلتر and the ones built on them: ملعقة، كوب، لتر، كيلو) convert into each other by BasicQuantity.
+        /// Count units (حبة، فص، رأس، ربطة، عود، رغيف…) have no size, so they only match themselves:
+        /// a cup of parsley can't be priced from a price per bunch.
+        /// </summary>
+        public bool Measured(Guid? unitId)
+        {
+            if (unitId is not Guid id || !units.TryGetValue(id, out var unit)) return false;
+            if (unit.BasicQuantity > 1) return true;
+            var name = (unit.Name ?? "").Trim();
+            var nick = (unit.NickName ?? "").Trim();
+            return name is "جرام" or "جم" or "ملليلتر" or "مل" or "ملي" or "ملل" || nick is "جم" or "مل" or "g" or "ml";
+        }
+
+        /// <summary>A recipe unit can be priced from the price unit: the same unit, or both weight / volume.</summary>
+        public bool Convertible(Guid? from, Guid? to) => from == to || (Measured(from) && Measured(to));
+
         public decimal Basic(Guid? unitId) =>
             unitId is Guid id && units.TryGetValue(id, out var unit) && unit.BasicQuantity > 0 ? unit.BasicQuantity : 1m;
 
@@ -110,10 +127,17 @@
 
         public PriceInfo? Info(Guid contentId) => prices.TryGetValue(contentId, out var p) ? p.Info : null;
 
+        /// <summary>The price per basic unit, only when the price's unit converts to the wanted one.</summary>
+        private decimal? PerBasicFor(Guid contentId, Guid unitId)
+        {
+            if (!prices.TryGetValue(contentId, out var p) || p.PerBasic is not decimal perBasic || p.Info == null) return null;
+            return Convertible(unitId, p.Info.UnitId) ? perBasic : null;
+        }
+
         /// <summary>Money for a quantity of an ingredient, null when the ingredient has no price.</summary>
         public decimal? Cost(Guid contentId, Guid unitId, decimal quantity)
         {
-            if (!prices.TryGetValue(contentId, out var p) || p.PerBasic is not decimal perBasic) return null;
+            if (PerBasicFor(contentId, unitId) is not decimal perBasic) return null;
             return Round(quantity * Basic(unitId) * perBasic);
         }
 
@@ -125,7 +149,7 @@
         public decimal? UnitCost(Guid contentId, Guid unitId, int mode)
         {
             if (mode == PurchaseRules.Money) return 1;
-            if (!prices.TryGetValue(contentId, out var p) || p.PerBasic is not decimal perBasic) return null;
+            if (PerBasicFor(contentId, unitId) is not decimal perBasic) return null;
             return Math.Round(Basic(unitId) * perBasic, 6);
         }
 

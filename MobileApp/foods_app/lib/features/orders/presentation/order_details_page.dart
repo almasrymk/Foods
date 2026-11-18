@@ -307,7 +307,7 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
     final o = widget.order;
     final groups = _groups(o);
     final count = o.lines.where((l) => l.quantity > 0).length;
-    Widget row(String? image, String fallback, String name, String qty, {bool last = false, bool dish = false, double? price}) => Container(
+    Widget row(String? image, String fallback, String name, String qty, {bool last = false, bool dish = false, double? price, String? unitPrice}) => Container(
       height: u(66),
       margin: EdgeInsets.symmetric(horizontal: u(28)),
       decoration: BoxDecoration(
@@ -331,8 +331,19 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
           Expanded(
             child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Fa.text(u(26))),
           ),
+          // The money of the quantity, and under it the price of one unit (e.g. 40 ج / كيلو).
           if (price != null) ...[
-            Text(egp(price), style: Fa.text(u(22), weight: FontWeight.w800, color: const Color(0xFF2F6A16), height: 1)),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(egp(price), style: Fa.text(u(22), weight: FontWeight.w800, color: const Color(0xFF2F6A16), height: 1)),
+                if (unitPrice != null) ...[
+                  SizedBox(height: u(4)),
+                  Text(unitPrice, style: Fa.text(u(17), weight: FontWeight.w700, color: const Color(0xFF8B7B6C), height: 1)),
+                ],
+              ],
+            ),
             SizedBox(width: u(12)),
           ],
           Container(
@@ -527,6 +538,7 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
                 PurchaseRules.text(groups[gi].$2[i]),
                 last: i == groups[gi].$2.length - 1,
                 price: groups[gi].$2[i].cost,
+                unitPrice: _unitPrice(groups[gi].$2[i]),
               ),
           ]),
         ],
@@ -595,4 +607,11 @@ Future<void> renameOrderDialog(BuildContext context, WidgetRef ref, String id, S
   } catch (e) {
     if (context.mounted) showMessage(context, e, error: true);
   }
+}
+
+/// "40 ج / كيلو": the price of one unit of the line (none for a by-money line).
+String? _unitPrice(ShoppingLine l) {
+  final unit = (l.unitName ?? '').trim();
+  if (l.unitPrice == null || unit.isEmpty || l.purchaseMode == PurchaseRules.money) return null;
+  return '${egp(l.unitPrice!)} / $unit';
 }

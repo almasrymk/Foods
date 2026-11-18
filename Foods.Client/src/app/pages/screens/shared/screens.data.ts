@@ -6,6 +6,10 @@ export interface FoodRow {
   desc: string;
   tag: string;
   tagIcon: string;
+  /** المجموعة and التصنيف chips on top; the cuisine shows under the name. */
+  group?: string;
+  category?: string;
+  cuisine?: string;
   image: string;
   /** Album (main photo first); a slider shows when there is more than one. */
   images?: string[];

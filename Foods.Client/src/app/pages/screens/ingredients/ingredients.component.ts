@@ -50,7 +50,7 @@ interface IngRow extends ShoppingLine {
               }
               <div class="ig-body">
                 <h3 class="name">{{ item.name }}</h3>
-                <p class="desc">{{ item.purchasePlaceName || 'مكون' }}@if (item.quantity > 0 && item.unitPrice != null) { <b class="ig-cost">{{ money(item.unitPrice * item.quantity) }}</b> }</p>
+                <p class="desc">{{ item.purchasePlaceName || 'مكون' }}@if (item.quantity > 0 && item.unitPrice != null) { <b class="ig-cost">{{ money(item.unitPrice * item.quantity) }}</b>@if (item.purchaseMode !== 3 && item.unitName) {<i class="ig-unit-price">{{ money(item.unitPrice) }} / {{ item.unitName }}</i>} }</p>
                 <span class="shop"><fa-icon name="cart" [weight]="2.2" />{{ item.purchasePlaceName || 'من البقالة' }}</span>
               </div>
               <i class="vl" aria-hidden="true"></i>
@@ -121,6 +121,7 @@ interface IngRow extends ShoppingLine {
       color: #2F6A16; font-size: calc(24 * var(--s)); font-weight: 800; white-space: nowrap;
     }
     .ig-total fa-icon { font-size: calc(26 * var(--s)); }
+    .ig-unit-price { font-style: normal; margin-inline-start: calc(8 * var(--s)); font-size: calc(19 * var(--s)); font-weight: 700; color: #8B7B6C; white-space: nowrap; }
     .ig-cost {
       margin-right: calc(10 * var(--s)); padding: 0 calc(10 * var(--s)); border-radius: calc(12 * var(--s));
       background: #EAF4DE; color: #2F6A16; font-weight: 800;

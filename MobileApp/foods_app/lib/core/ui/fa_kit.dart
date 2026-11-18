@@ -74,7 +74,8 @@ class FontLevel {
   static const normal = 2;
   static const count = 4;
   static const labels = ['أصغر', 'صغير', 'عادي', 'كبير'];
-  static const scales = [1.0, 1.12, 1.25, 1.34];
+  // Wider steps so each level is clearly different; "عادي" stays 1.25.
+  static const scales = [0.9, 1.07, 1.25, 1.4];
   static double scaleOf(int level) => scales[level.clamp(0, scales.length - 1)];
 }
 

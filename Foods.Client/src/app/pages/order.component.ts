@@ -96,7 +96,7 @@ interface PlaceGroup {
                 <article class="row">
                   <img class="pic" [src]="imageOf(line)" [alt]="line.name || ''">
                   <b class="name">{{ line.name }}</b>
-                  @if (line.unitPrice != null) { <span class="line-price">{{ money(line.unitPrice * line.quantity) }}</span> }
+                  @if (line.unitPrice != null) { <span class="line-price">{{ money(line.unitPrice * line.quantity) }}@if (line.purchaseMode !== 3 && line.unitName) {<small class="line-unit-price">{{ money(line.unitPrice) }} / {{ line.unitName }}</small>}</span> }
                   <span class="qty"><bdi>{{ qtyText(line) }}</bdi></span>
                 </article>
               }
@@ -199,6 +199,7 @@ interface PlaceGroup {
     .total-bar .cnt-ico { color: #3E7B22; }
     .total-bar .miss { margin-right: calc(10 * var(--u)); color: #C45A00; font-size: calc(19 * var(--u)); font-weight: 500; }
     .total-num { margin-right: auto; color: #2F6A16; font-size: calc(28 * var(--u)); font-weight: 800; white-space: nowrap; }
+    .line-unit-price { display: block; margin-top: calc(3 * var(--u)); color: #8B7B6C; font-size: calc(17 * var(--u)); font-weight: 700; text-align: end; }
     .line-price { flex: none; margin-left: calc(12 * var(--u)); color: #2F6A16; font-size: calc(22 * var(--u)); font-weight: 800; white-space: nowrap; }
     .count-bar {
       display: flex; align-items: center;

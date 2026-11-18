@@ -1155,7 +1155,8 @@ class FaFoodRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                FaItemTags(cuisine: item.cuisineName, category: item.categoryName, group: item.groupName),
+                // المجموعة then التصنيف on top; the cuisine goes under the name.
+                FaItemTags(category: item.categoryName, group: item.groupName),
                 SizedBox(height: s(6)),
                 Tap(
                   onTap: open,
@@ -1167,6 +1168,10 @@ class FaFoodRow extends ConsumerWidget {
                     style: Fa.text(s(30), weight: FontWeight.w800, color: Fa.title, height: 1.2),
                   ),
                 ),
+                if ((item.cuisineName ?? '').trim().isNotEmpty) ...[
+                  SizedBox(height: s(6)),
+                  FaItemTags(cuisine: item.cuisineName),
+                ],
                 if ((item.summary ?? '').trim().isNotEmpty) ...[
                   SizedBox(height: s(4)),
                   Text(
@@ -1239,9 +1244,10 @@ class FaFoodRow extends ConsumerWidget {
               child: FaIcon('heart', size: s(48), filled: fav, weight: 1.8, color: redHeart ? const Color(0xFFE8222E) : const Color(0xFFF07A2A)),
             ),
           ),
+          // The counter stays at the bottom of the card, with or without a price.
           Positioned(
             left: s(24),
-            top: s(96),
+            bottom: s(34),
             width: s(158),
             child: FaStepper(qty: qty, onStep: (d) => setQty(qty + d)),
           ),
@@ -1431,8 +1437,8 @@ class FaItemTags extends StatelessWidget {
     );
     final tags = <Widget>[
       if ((cuisine ?? '').trim().isNotEmpty) tag(faChipIcon(cuisine), cuisine!.trim(), const Color(0xFFEAF4D9), Fa.green),
-      if ((category ?? '').trim().isNotEmpty) tag('grid', category!.trim(), const Color(0xFFFFEEDC), const Color(0xFFC75A06)),
       if ((group ?? '').trim().isNotEmpty) tag('layers', group!.trim(), const Color(0xFFEDE7FA), const Color(0xFF5B3FA6)),
+      if ((category ?? '').trim().isNotEmpty) tag('grid', category!.trim(), const Color(0xFFFFEEDC), const Color(0xFFC75A06)),
     ];
     if (tags.isEmpty) tags.add(tag('cloche', 'أكلة', const Color(0xFFEAF4D9), Fa.green));
     return Wrap(

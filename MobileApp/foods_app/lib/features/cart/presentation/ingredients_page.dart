@@ -249,9 +249,22 @@ class _LineCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Fa.text(s(22), weight: FontWeight.w500, color: off ? muted : const Color(0xFF5E5148)),
                 ),
+                // Two prices: the money of the chosen quantity (follows + / -) and the price of one unit.
                 if (!off && line.cost != null) ...[
                   SizedBox(height: s(6)),
-                  FaPriceTag(line.cost!, size: 20),
+                  Wrap(
+                    spacing: s(10),
+                    runSpacing: s(4),
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      FaPriceTag(line.cost!, size: 20),
+                      if (line.purchaseMode != PurchaseRules.money && line.unitPrice != null && (line.unitName ?? '').trim().isNotEmpty)
+                        Text(
+                          '${egp(line.unitPrice!)} / ${line.unitName!.trim()}',
+                          style: Fa.text(s(19), weight: FontWeight.w700, color: const Color(0xFF8B7B6C), height: 1.1),
+                        ),
+                    ],
+                  ),
                 ],
                 SizedBox(height: s(8)),
                 Container(
