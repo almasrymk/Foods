@@ -708,6 +708,7 @@ class _MealCard extends ConsumerWidget {
     // The family size, the same number the dish details page shows.
     final members = ref.watch(familyProvider).value?.length ?? 0;
     final people = members > 0 ? members : 1;
+    final cuisine = ((item.cuisineName ?? '').trim().isNotEmpty ? item.cuisineName! : (item.countryName ?? '')).trim();
     final ctl = ref.read(cartControllerProvider.notifier);
     final sel = qty > 0;
     Widget round(bool plus) => Tap(
@@ -752,6 +753,21 @@ class _MealCard extends ConsumerWidget {
                     hoverScale: 1.08,
                     child: NetImage(item.imagePath, fallbackAsset: 'assets/screens/foods/peppers.png'),
                   ),
+                  // The dish price for the family, only when the customer works with prices.
+                  if (item.price != null && item.price! > 0)
+                    Positioned(
+                      left: u(10),
+                      bottom: u(10),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: u(12), vertical: u(4)),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(u(16)),
+                          boxShadow: [BoxShadow(color: const Color(0x1A000000), blurRadius: u(6))],
+                        ),
+                        child: Text(egp(item.price!), style: Fa.text(u(22), weight: FontWeight.w800, color: const Color(0xFF2F6A16), height: 1.2)),
+                      ),
+                    ),
                   if (sel)
                     Positioned(
                       left: u(10),
@@ -816,6 +832,15 @@ class _MealCard extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // The dish's cuisine, then the family size.
+                  if (cuisine.isNotEmpty) ...[
+                    FaIcon('cloche', size: u(26), color: const Color(0xFF5B4636), weight: 1.8),
+                    SizedBox(width: u(5)),
+                    Flexible(
+                      child: Text(cuisine, maxLines: 1, overflow: TextOverflow.ellipsis, style: Fa.text(u(23), color: const Color(0xFF5B4636))),
+                    ),
+                    SizedBox(width: u(18)),
+                  ],
                   Text('$people', style: Fa.text(u(25), color: const Color(0xFF5B4636))),
                   SizedBox(width: u(6)),
                   FaPath(FaPaths.personSmall, size: u(30), color: const Color(0xFF5B4636)),

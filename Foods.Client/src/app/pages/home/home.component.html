@@ -125,6 +125,7 @@
             } @else {
               <img [src]="meal.image" [alt]="meal.title" loading="lazy" decoding="async">
             }
+            @if (meal.price) {<span class="hm-price-badge">{{ meal.price }}</span>}
             @if (meal.quantity > 0) {
               <span class="hm-check-badge" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
@@ -141,6 +142,7 @@
           </div>
           <h3>{{ meal.title }}</h3>
           <div class="hm-meta">
+            @if (meal.cuisine) {<fa-icon class="hm-cuisine-ic" name="cloche" [weight]="1.8" /><span class="hm-meal-cuisine">{{ meal.cuisine }}</span>}
             <span class="hm-persons">{{ meal.persons }}</span>
             <svg class="hm-person" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v1c0 .55.45 1 1 1h14c.55 0 1-.45 1-1v-1c0-2.66-5.33-4-8-4z"/></svg>
           </div>

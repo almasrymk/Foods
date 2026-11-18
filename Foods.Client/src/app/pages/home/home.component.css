@@ -684,3 +684,13 @@
 
 /* the meal count sits on the tile's bottom line, the same height in every tile */
 .hm-category .hm-cat-count { margin-top: auto; padding-top: calc(4 * var(--u)); }
+
+/* suggested dishes: cuisine before the family size, and the price on the photo when prices are on */
+.hm-meta .hm-cuisine-ic { font-size: calc(26 * var(--u)); margin-left: calc(5 * var(--u)); flex: none; }
+.hm-meta .hm-meal-cuisine { font-size: calc(23 * var(--u)); min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: calc(18 * var(--u)); }
+.hm-price-badge {
+  position: absolute; left: calc(10 * var(--u)); bottom: calc(10 * var(--u)); z-index: 2;
+  padding: calc(4 * var(--u)) calc(12 * var(--u)); border-radius: calc(16 * var(--u));
+  background: #fff; box-shadow: 0 0 calc(6 * var(--u)) rgba(0, 0, 0, .1);
+  color: #2F6A16; font-size: calc(22 * var(--u)); font-weight: 800; line-height: 1.2;
+}

@@ -1,3 +1,4 @@
+import { egp } from '../../core/money';
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -33,11 +34,14 @@ interface SuggestedMeal {
   title: string;
   image: string;
   images?: string[];
-  minutes: number;
   persons: number;
   isFavorite: boolean;
   quantity: number;
   cuisineId?: string | null;
+  /** The dish's cuisine (or country) name. */
+  cuisine: string;
+  /** Dish price for the family, shown only when prices are on ('' = hidden). */
+  price: string;
 }
 
 @Component({
@@ -403,11 +407,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       title: item.name || '',
       image: mediaUrl(item.imagePath) || 'assets/home/meal_koshary.png',
       images: item.images || [],
-      minutes: 30,
       persons: this.people,
       isFavorite: !!item.isFavorite,
       quantity,
-      cuisineId: item.cuisineId
+      cuisineId: item.cuisineId,
+      cuisine: (item.cuisineName || item.countryName || '').trim(),
+      price: item.price != null && item.price > 0 ? egp(item.price) : ''
     };
   }
 }
