@@ -15,6 +15,7 @@ import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../prices/prices.dart';
+import '../../account/presentation/settings_page.dart' show familyProvider;
 
 final _suggestedProvider = FutureProvider.autoDispose<List<ItemCard>>(
   (ref) {
@@ -242,7 +243,8 @@ class _MealsLane extends ConsumerWidget {
           ),
         ),
         data: (rows) => _Lane(
-          height: u(206),
+          // Grows with the chosen font size so the count never drops out of the tile.
+          height: u(206) + u(64) * ((MediaQuery.textScalerOf(context).scale(10) / 10) - 1).clamp(0.0, 1.0),
           gap: u(6),
           itemCount: rows.length,
           itemBuilder: (_, i) {
@@ -284,7 +286,8 @@ class _MealsLane extends ConsumerWidget {
                         style: Fa.text(u(name.length > 8 ? 22 : 28), weight: FontWeight.w800, color: fg),
                       ),
                     ),
-                    SizedBox(height: u(4)),
+                    // The count sits on the tile's bottom line, the same height in every tile.
+                    const Spacer(),
                     Text(
                       '${m.count}',
                       style: Fa.text(u(19), weight: FontWeight.w800, color: _darken(m.color ?? '#F37202', .35), height: 1),
@@ -702,6 +705,9 @@ class _MealCard extends ConsumerWidget {
     final u = context.u;
     final qty = ref.watch(cartControllerProvider.select((c) => c.count(item.id)));
     final fav = ref.watch(favoriteOverridesProvider)[item.id] ?? item.isFavorite;
+    // The family size, the same number the dish details page shows.
+    final members = ref.watch(familyProvider).value?.length ?? 0;
+    final people = members > 0 ? members : 1;
     final ctl = ref.read(cartControllerProvider.notifier);
     final sel = qty > 0;
     Widget round(bool plus) => Tap(
@@ -814,7 +820,7 @@ class _MealCard extends ConsumerWidget {
                   SizedBox(width: u(6)),
                   Text('30 د', style: Fa.text(u(25), color: const Color(0xFF5B4636))),
                   SizedBox(width: u(46)),
-                  Text('4', style: Fa.text(u(25), color: const Color(0xFF5B4636))),
+                  Text('$people', style: Fa.text(u(25), color: const Color(0xFF5B4636))),
                   SizedBox(width: u(6)),
                   FaPath(FaPaths.personSmall, size: u(30), color: const Color(0xFF5B4636)),
                 ],

@@ -95,6 +95,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   myPhoto = '';
   private photoSub?: Subscription;
   private pageSub?: Subscription;
+  /** Family size (the same number the dish details page shows). */
+  private people = 1;
   private readonly onWinResize = () => this.refreshAllSlideNav();
 
   constructor(
@@ -136,6 +138,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.photos.sync();
     this.draft.bootFromServer();
     this.draftSub = this.draft.selectionCount$.subscribe(() => this.syncSuggestedFromDraft());
+    this.api.family().subscribe({
+      next: members => {
+        this.people = members.length || 1;
+        for (const meal of this.suggested) meal.persons = this.people;
+      },
+      error: () => {}
+    });
     this.api.meals().subscribe({
       next: meals => {
         this.meals = [...meals].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
@@ -395,7 +404,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       image: mediaUrl(item.imagePath) || 'assets/home/meal_koshary.png',
       images: item.images || [],
       minutes: 30,
-      persons: 4,
+      persons: this.people,
       isFavorite: !!item.isFavorite,
       quantity,
       cuisineId: item.cuisineId
