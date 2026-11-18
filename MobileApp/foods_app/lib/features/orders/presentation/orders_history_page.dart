@@ -11,6 +11,7 @@ import '../../../core/ui/fa_kit.dart';
 import '../../../core/widgets/async_views.dart';
 import '../../../core/widgets/net_image.dart';
 import '../../cart/domain/purchase_rules.dart';
+import '../../cart/domain/selected_item.dart';
 import '../../cart/domain/shopping_line.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../domain/order_models.dart';
@@ -409,6 +410,7 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
   bool _editing = false;
   bool _reordering = false;
   List<ShoppingLine>? _lines;
+  OrderDetail? _detail;
   late final _name = TextEditingController(text: widget.order.name ?? '');
 
   OrderHistoryItem get o => widget.order;
@@ -424,7 +426,12 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
     if (_open && _lines == null) {
       try {
         final d = await ref.read(ordersRepositoryProvider).order(o.id);
-        if (mounted) setState(() => _lines = d.lines);
+        if (mounted) {
+          setState(() {
+            _detail = d;
+            _lines = d.lines;
+          });
+        }
       } catch (_) {
         if (mounted) setState(() => _lines = const []);
       }
@@ -585,6 +592,14 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
   Widget _inner(BuildContext context) {
     final s = context.s;
     final muted = Fa.text(s(22), weight: FontWeight.w500, color: const Color(0xFF8A7B6E));
+    // Prices are on when the order came back with a total (null = the customer works without prices).
+    final pricesOn = o.total != null || _detail?.total != null;
+    double? dishPrice(String itemId) {
+      for (final it in _detail?.items ?? const <SelectedItem>[]) {
+        if (it.itemId == itemId) return it.price;
+      }
+      return null;
+    }
     final groups = <String, List<ShoppingLine>>{};
     for (final l in _lines ?? const <ShoppingLine>[]) {
       final p = (l.purchasePlaceName ?? '').trim();
@@ -611,7 +626,8 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
                     crossAxisSpacing: s(12),
                     mainAxisSpacing: s(12),
                     // Card height follows the content: shorter when no dish has a description.
-                    childAspectRatio: o.dishes.any((d) => (d.summary ?? '').trim().isNotEmpty) ? .8 : 1.0,
+                    // A little taller when prices are on: the dish price sits under the name.
+                    childAspectRatio: pricesOn ? .84 : 1.0,
                     children: [
                       for (final d in o.dishes)
                         Container(
@@ -641,15 +657,9 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
                                     overflow: TextOverflow.ellipsis,
                                     style: Fa.text(s(21), weight: FontWeight.w800, height: 1.25),
                                   ),
-                                  if ((d.summary ?? '').trim().isNotEmpty) ...[
-                                    SizedBox(height: s(4)),
-                                    Text(
-                                      d.summary!.trim(),
-                                      maxLines: 2,
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Fa.text(s(17), weight: FontWeight.w500, color: const Color(0xFF7A6658), height: 1.25),
-                                    ),
+                                  if (pricesOn) ...[
+                                    SizedBox(height: s(6)),
+                                    _money(context, dishPrice(d.itemId), size: 18),
                                   ],
                                 ],
                               ),
@@ -701,7 +711,9 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
                               FaIcon('cart', size: s(22), color: const Color(0xFF3E7B22), weight: 2.2),
                               SizedBox(width: s(8)),
                               Text(
-                                g.key,
+                                pricesOn && g.value.any((l) => (l.cost ?? 0) > 0)
+                                    ? '${g.key} · ${egp(g.value.fold<double>(0, (a, l) => a + (l.cost ?? 0)))}'
+                                    : g.key,
                                 style: Fa.text(s(19), weight: FontWeight.w800, color: const Color(0xFF3E7B22), height: 1),
                               ),
                             ],
@@ -715,7 +727,7 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
                             crossAxisCount: 2,
                             crossAxisSpacing: s(10),
                             mainAxisSpacing: s(10),
-                            mainAxisExtent: s(54),
+                            mainAxisExtent: pricesOn ? s(78) : s(54),
                           ),
                           children: [
                             for (final l in g.value)
@@ -729,7 +741,17 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
                                 child: Row(
                                   children: [
                                     Expanded(
-                                      child: Text(l.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: Fa.text(s(21))),
+                                      child: pricesOn
+                                          ? Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(l.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: Fa.text(s(21), height: 1.2)),
+                                                SizedBox(height: s(3)),
+                                                _money(context, l.cost, size: 17),
+                                              ],
+                                            )
+                                          : Text(l.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: Fa.text(s(21))),
                                     ),
                                     Container(
                                       height: s(34),
@@ -864,9 +886,9 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
                           overflow: TextOverflow.ellipsis,
                           style: Fa.text(s(21), weight: FontWeight.w500, color: const Color(0xFF6B625C)),
                         ),
-                        if (o.total != null && o.total! > 0) ...[
+                        if (o.total != null) ...[
                           SizedBox(height: s(6)),
-                          FaPriceTag(o.total!, size: 20),
+                          o.total! > 0 ? FaPriceTag(o.total!, size: 20) : _money(context, null, size: 19),
                         ],
                       ],
                     ),
@@ -903,6 +925,18 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
           if (_open) ...[_inner(context), _quick(context)] else _quick(context),
         ],
       ),
+    );
+  }
+
+  /// A price in green, or "مفيش سعر لسه" in orange when nothing is priced yet.
+  Widget _money(BuildContext context, double? v, {double size = 18}) {
+    final s = context.s;
+    final has = v != null && v > 0;
+    return Text(
+      has ? egp(v!) : 'مفيش سعر لسه',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: Fa.text(s(size), weight: FontWeight.w800, color: has ? const Color(0xFF2F6A16) : const Color(0xFFC45A00), height: 1.1),
     );
   }
 

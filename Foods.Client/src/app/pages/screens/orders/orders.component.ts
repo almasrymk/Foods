@@ -25,6 +25,8 @@ interface OrderCardView extends OrderHistoryItem {
   open?: boolean;
   lines?: ShoppingLine[] | null;
   linesLoading?: boolean;
+  /** Dish prices from the order detail (itemId -> price for all its repeats). */
+  dishPrices?: Record<string, number | null>;
 }
 
 const PAGE_SIZE = 20;
@@ -98,7 +100,7 @@ const PAGE_SIZE = 20;
                   </span>
                 }
                 <span class="date">{{ dateLabel(o.date) }} · {{ o.dishCount }} أكلة · {{ o.lineCount }} مكون</span>
-                @if (o.total) { <span class="o-total">{{ money(o.total) }}</span> }
+                @if (o.total != null) { <span class="o-total" [class.none]="!o.total">{{ o.total ? money(o.total) : 'مفيش سعر لسه' }}</span> }
               </span>
               <span class="status" [class]="'status ' + o.state"><fa-icon [name]="stateIcon(o.state)" [weight]="2.6" />{{ stateLabel(o.state) }}</span>
               <span class="toggle"><fa-icon [name]="o.open ? 'chevronUp' : 'chevronDown'" [weight]="2.6" /></span>
@@ -130,7 +132,7 @@ const PAGE_SIZE = 20;
                         <img [src]="dishImage(d.imagePath)" [alt]="d.name || ''" loading="lazy">
                         <span class="dish-x">{{ d.repeatCount }}</span>
                         <span class="dish-name">{{ d.name }}</span>
-                        @if (d.summary) { <span class="dish-desc">{{ d.summary }}</span> }
+                        @if (o.total != null) { <span class="dish-price" [class.none]="!o.dishPrices?.[d.itemId]">{{ o.dishPrices?.[d.itemId] ? money(o.dishPrices![d.itemId]!) : 'مفيش سعر لسه' }}</span> }
                       </div>
                     } @empty {
                       <p class="muted">لا توجد أكلات.</p>
@@ -148,10 +150,10 @@ const PAGE_SIZE = 20;
                     <p class="muted">جاري التحميل...</p>
                   } @else {
                     @for (g of placeGroups(o.lines); track g.place) {
-                      <div class="place-tag"><fa-icon name="cart" [weight]="2.2" />{{ g.place }}</div>
+                      <div class="place-tag"><fa-icon name="cart" [weight]="2.2" />{{ g.place }}@if (o.total != null && placeSum(g.lines) > 0) { · {{ money(placeSum(g.lines)) }}}</div>
                       <div class="ing-grid">
                         @for (l of g.lines; track l.contentId + ':' + l.unitId) {
-                          <div class="ing"><span class="ing-name">{{ l.name }}</span><b class="ing-qty">{{ qty(l) }}</b></div>
+                          <div class="ing"><span class="ing-name">{{ l.name }}@if (o.total != null) {<small class="ing-price" [class.none]="!l.price">{{ l.price ? money(l.price) : 'مفيش سعر لسه' }}</small>}</span><b class="ing-qty">{{ qty(l) }}</b></div>
                         }
                       </div>
                     } @empty {
@@ -294,6 +296,10 @@ const PAGE_SIZE = 20;
       display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
     }
 
+    .o-total.none, .dish-price.none, .ing-price.none { background: transparent; border: 0; padding: 0; color: #C45A00; }
+    .dish-price { text-align: center; font-size: calc(18 * var(--s)); font-weight: 800; color: #2F6A16; }
+    .ing-name .ing-price { display: block; font-size: calc(17 * var(--s)); font-weight: 800; color: #2F6A16; margin-top: calc(2 * var(--s)); }
+    .ing-name .ing-price.none { color: #C45A00; }
     .place-tag {
       display: inline-flex; align-items: center; gap: calc(8 * var(--s));
       height: calc(34 * var(--s)); padding: 0 calc(14 * var(--s)); margin: calc(4 * var(--s)) 0 calc(10 * var(--s));
@@ -508,6 +514,7 @@ export class OrdersScreenComponent implements OnInit, OnDestroy {
       this.api.order(o.id).subscribe({
         next: detail => {
           o.lines = (detail.lines || []).filter(line => line.quantity > 0);
+          o.dishPrices = Object.fromEntries((detail.items || []).map(it => [it.itemId, it.price ?? null]));
           o.linesLoading = false;
         },
         error: () => { o.lines = null; o.linesLoading = false; }
@@ -588,6 +595,11 @@ export class OrdersScreenComponent implements OnInit, OnDestroy {
   }
 
   /** Ingredients grouped by where they are bought (البقالة، الخضارجي...). */
+  /** Money of one shop's lines. */
+  placeSum(lines: ShoppingLine[]): number {
+    return Math.round(lines.reduce((a, l) => a + (l.price || 0), 0) * 100) / 100;
+  }
+
   placeGroups(lines?: ShoppingLine[] | null): { place: string; lines: ShoppingLine[] }[] {
     const map = new Map<string, ShoppingLine[]>();
     for (const line of lines || []) {
