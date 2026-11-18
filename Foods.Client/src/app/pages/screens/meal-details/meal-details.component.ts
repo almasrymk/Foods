@@ -29,6 +29,8 @@ interface IngView {
   selected: boolean;
   /** Money of the quantity (per person); null = no price yet. */
   cost: number | null;
+  /** The ingredient's own price, e.g. "120 ج / كيلو" ('' = none). */
+  unitPrice: string;
 }
 
 /** One part (صنف) row. */
@@ -257,6 +259,14 @@ export class MealDetailsScreenComponent implements OnInit, OnDestroy {
     };
   }
 
+  private unitPrice(line: ItemIngredient): string {
+    const p = line.priceInfo;
+    if (!p || !(p.price > 0)) return '';
+    const unit = (p.unitName || '').trim();
+    const per = unit ? ` / ${p.quantity === 1 ? '' : this.trim(p.quantity) + ' '}${unit}` : '';
+    return this.money(p.price) + per;
+  }
+
   private toView(line: ItemIngredient, index: number): IngView {
     return {
       key: line.contentId + ':' + index,
@@ -269,7 +279,8 @@ export class MealDetailsScreenComponent implements OnInit, OnDestroy {
       contentId: line.contentId,
       optional: !!line.isOptional,
       selected: line.selected !== false,
-      cost: line.cost ?? null
+      cost: line.cost ?? null,
+      unitPrice: this.unitPrice(line)
     };
   }
 

@@ -729,6 +729,16 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
     );
   }
 
+  /// The ingredient's market price: "120 ج / كيلو" (or "/ 2 كيلو" when priced per more than one unit).
+  Widget _unitPrice(BuildContext context, PriceInfo p) {
+    final m = context.m;
+    final q = p.quantity;
+    final qs = q == q.roundToDouble() ? q.toStringAsFixed(0) : '${(q * 1000).round() / 1000}';
+    final unit = (p.unitName ?? '').trim();
+    final per = unit.isEmpty ? '' : ' / ${q == 1 ? '' : '$qs '}$unit';
+    return Text('${egp(p.price)}$per', style: Fa.text(m(19), weight: FontWeight.w700, color: const Color(0xFF8B7B6C), height: 1.1));
+  }
+
   /// The ingredient's cost (per person); tap to change its price for this customer.
   Widget _costTag(BuildContext context, ItemIngredient ing) {
     final m = context.m;
@@ -830,6 +840,8 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
                           height: 1.1,
                         ).copyWith(decoration: off ? TextDecoration.lineThrough : null),
                       ),
+                      // The ingredient's own price (e.g. 120 ج / كيلو) next to it.
+                      if (item.price != null && ing.priceInfo != null && ing.priceInfo!.price > 0) _unitPrice(context, ing.priceInfo!),
                     ],
                   ),
                 ],

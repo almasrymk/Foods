@@ -297,3 +297,6 @@
 .md-head .md-head-top .md-video img { max-height: calc(400 * var(--s)); }
 .md-head .md-head-top .md-video fa-photo-slider { height: calc(400 * var(--s)); }
 .md-head-top .md-head-txt .md-facts span { max-width: 100%; }
+
+/* the ingredient's own price next to it */
+.md-irow span .md-unit-price { font-style: normal; font-size: calc(19 * var(--s)); font-weight: 700; color: #8B7B6C; margin-inline-start: calc(8 * var(--s)); }

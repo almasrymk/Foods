@@ -79,7 +79,7 @@
                 <img [src]="it.image" [alt]="it.name">
               }
               <b>{{ it.name }}</b>
-              <span>@if (it.optional) {<em>اختياري</em>}{{ it.qty }}@if (priced) {<button type="button" class="md-cost" [class.none]="it.cost == null" (click)="priceFor = it.contentId" [attr.aria-label]="'سعر ' + it.name">{{ it.cost == null ? 'حط سعر' : money(it.cost) }}</button>}</span>
+              <span>@if (it.optional) {<em>اختياري</em>}{{ it.qty }}@if (priced) {<button type="button" class="md-cost" [class.none]="it.cost == null" (click)="priceFor = it.contentId" [attr.aria-label]="'سعر ' + it.name">{{ it.cost == null ? 'حط سعر' : money(it.cost) }}</button>@if (it.unitPrice) {<i class="md-unit-price">{{ it.unitPrice }}</i>}}</span>
               @if (it.optional) {
                 <button type="button" class="md-pick" [class.on]="it.selected" (click)="toggleIngredient(it)" [disabled]="choiceBusy"
                         [attr.aria-pressed]="it.selected" [attr.aria-label]="(it.selected ? 'شيل ' : 'ضيف ') + it.name">
