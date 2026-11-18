@@ -8,8 +8,9 @@
       <img class="md-dash" src="assets/screens/shared/dash.png" alt="">
     </div>
 
-    <!-- hero: the cuisine tag, the name and its description, then the whole photo across the page, then group / category / family -->
+    <!-- hero: the cuisine tag, the name and its description, with the whole photo beside them, then group / category / family -->
     <div class="md-head">
+    <div class="md-head-top">
     <div class="md-head-txt">
     <span class="md-tag"><fa-icon name="cloche" [weight]="1.8" />{{ meal.tag }}</span>
     <h2 class="md-name">{{ meal.title }}</h2>
@@ -23,6 +24,7 @@
     }
     </div>
     <button type="button" class="md-video" aria-label="تشغيل الفيديو">@if (heroImages.length > 1) {<fa-photo-slider [images]="heroImages" [alt]="meal.title" [fallback]="meal.video" [eager]="true" fit="contain" />} @else {<img [src]="meal.video" [alt]="meal.title">}</button>
+    </div>
     <div class="md-facts">
       @for (f of meal.facts; track f.label) {
         <span><fa-icon [name]="f.icon" [filled]="!!f.filled" [weight]="1.8" />{{ f.label }}</span>

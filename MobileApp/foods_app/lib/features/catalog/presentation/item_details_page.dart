@@ -369,7 +369,7 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
     );
     final members = ref.watch(familyProvider).value?.length ?? 0;
     final people = members > 0 ? members : 1;
-    Widget fact(String icon, String label, {bool filled = false}) => Container(
+    Widget fact(String icon, String label, {bool filled = false, double? maxW}) => Container(
       height: m(52),
       padding: EdgeInsets.symmetric(horizontal: m(18)),
       decoration: BoxDecoration(
@@ -383,7 +383,7 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
           FaIcon(icon, size: m(36), color: Fa.orange, filled: filled, weight: 1.8),
           SizedBox(width: m(10)),
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: m(600)),
+            constraints: BoxConstraints(maxWidth: maxW ?? m(600)),
             child: Text(
               label,
               maxLines: 1,
@@ -445,10 +445,14 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
             ],
           ),
         ),
-        // The cuisine tag, the name, its description, and the price / other country's version above the photo.
+        // The cuisine tag, the name, its description and the price on the right, the dish photo beside them on the left.
         Padding(
-          padding: EdgeInsets.only(right: m(38), left: m(30)),
-          child: Column(
+          padding: EdgeInsets.only(right: m(38), left: m(25)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
@@ -479,7 +483,7 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
                   spacing: m(14),
                   runSpacing: m(12),
                   children: [
-                    if (item.isOtherCountry && (item.recipeCountryName ?? '').isNotEmpty) fact('pin', 'نسخة ${item.recipeCountryName}'),
+                    if (item.isOtherCountry && (item.recipeCountryName ?? '').isNotEmpty) fact('pin', 'نسخة ${item.recipeCountryName}', maxW: m(330)),
                     // سعر الأكلة للأسرة من أسعار مكوناتها (وأصنافها).
                     if (item.price != null)
                       fact(
@@ -487,6 +491,7 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
                         item.price!.total > 0
                             ? 'السعر ${egp(item.price!.total)}${item.price!.people > 1 ? ' · للفرد ${egp(item.price!.perPerson)}' : ''}'
                             : 'مفيش سعر لسه',
+                        maxW: m(330),
                       ),
                   ],
                 ),
@@ -499,18 +504,21 @@ class _ItemDetailsPageState extends ConsumerState<ItemDetailsPage> {
                 ),
               ],
             ],
-          ),
-        ),
-        SizedBox(height: m(18)),
-        // The dish photo across the page, the whole picture (never cropped), not taller than m(430); tap to open it.
-        Padding(
-          padding: EdgeInsets.only(right: m(23), left: m(25)),
-          child: FaZoom(
-            images: images,
-            fallbackAsset: 'assets/screens/details/video-main.png',
-            tapToOpen: true,
-            hoverScale: 1,
-            child: NaturalPhoto(images: images, fallbackAsset: 'assets/screens/details/video-main.png', radius: BorderRadius.circular(m(22)), maxHeight: m(430), whole: true),
+            ),
+            ),
+            SizedBox(width: m(20)),
+            // The whole dish photo (never cropped), tap to open it.
+            SizedBox(
+              width: m(400),
+              child: FaZoom(
+                images: images,
+                fallbackAsset: 'assets/screens/details/video-main.png',
+                tapToOpen: true,
+                hoverScale: 1,
+                child: NaturalPhoto(images: images, fallbackAsset: 'assets/screens/details/video-main.png', radius: BorderRadius.circular(m(22)), maxHeight: m(400), whole: true),
+              ),
+            ),
+            ],
           ),
         ),
         SizedBox(height: m(18)),

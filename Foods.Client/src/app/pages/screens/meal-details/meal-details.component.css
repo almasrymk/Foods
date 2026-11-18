@@ -290,3 +290,10 @@
 .md-head-txt { padding-right: calc(13 * var(--s)); }
 .md-head-txt .md-desc { padding: 0; }
 .md-head-txt .md-facts { padding: 0; margin-top: calc(4 * var(--s)); }
+
+/* photo beside the name (left), the whole picture (no crop / zoom) */
+.md-head .md-head-top { align-items: flex-start; }
+.md-head .md-head-top .md-video { width: calc(400 * var(--s)); flex: none; height: auto; max-height: calc(400 * var(--s)); }
+.md-head .md-head-top .md-video img { max-height: calc(400 * var(--s)); }
+.md-head .md-head-top .md-video fa-photo-slider { height: calc(400 * var(--s)); }
+.md-head-top .md-head-txt .md-facts span { max-width: 100%; }
