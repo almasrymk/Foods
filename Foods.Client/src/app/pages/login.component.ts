@@ -9,7 +9,7 @@ import { AuthService } from '../core/auth.service';
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <section class="auth">
-      <img class="logo big" src="logo.png?v=2" alt="Foodapp">
+      <img class="logo big" src="logo.png?v=2" alt="Foods">
       <h1>مرحبا بك</h1>
       <form class="auth-card" (ngSubmit)="submit()">
         <p class="lead">لن رحلتك في بيتك</p>

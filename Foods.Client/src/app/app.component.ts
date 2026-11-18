@@ -18,7 +18,7 @@ import { FaTabBarComponent } from './pages/screens/shared/tab-bar.component';
       <ng-container *ngIf="isCms(); else customer">
         <button type="button" class="cms-backdrop" *ngIf="menuOpen && !isGuest()" (click)="menuOpen = false" aria-label="إغلاق القائمة"></button>
         <aside class="side" *ngIf="!isGuest()">
-          <div class="brand"><img class="logo" src="logo.png?v=2" alt="Foodapp"> لوحة الإدارة</div>
+          <div class="brand"><img class="logo" src="logo.png?v=2" alt="Foods"> لوحة الإدارة</div>
           <a routerLink="/cms/lookups" routerLinkActive="active"><app-icon name="lookups"></app-icon> البيانات المساعدة</a>
           <a routerLink="/cms/meals" routerLinkActive="active"><app-icon name="meals"></app-icon> الوجبات</a>
           <a routerLink="/cms/items" routerLinkActive="active"><app-icon name="items"></app-icon> الأكلات</a>

@@ -1,4 +1,4 @@
-# Foodapp (Flutter)
+# Foods (Flutter)
 
 The customer app of Foods, for Android, talking to the hosted API.
 

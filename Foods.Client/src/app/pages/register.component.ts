@@ -13,7 +13,7 @@ import { Select2Component } from '../core/select2.component';
   imports: [CommonModule, FormsModule, RouterLink, Select2Component],
   template: `
     <section class="auth">
-      <img class="logo big" src="logo.png?v=2" alt="Foodapp">
+      <img class="logo big" src="logo.png?v=2" alt="Foods">
       <h1>حساب جديد</h1>
       <form class="auth-card" (ngSubmit)="submit()">
         <label>الاسم<input [(ngModel)]="name" name="name" required></label>

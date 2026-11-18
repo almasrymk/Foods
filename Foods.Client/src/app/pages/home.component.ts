@@ -52,7 +52,7 @@ interface SpeechSession {
           <svg viewBox="0 0 24 24"><path d="M6.5 9.2a5.5 5.5 0 0 1 11 0c0 4.2 1.4 5.6 1.4 5.6H5.1s1.4-1.4 1.4-5.6z"></path><path d="M10 18.2a2 2 0 0 0 4 0"></path></svg>
           <b *ngIf="draft.items.length">{{ draft.items.length }}</b>
         </a>
-        <img class="hub-logo" src="logo.png?v=2" alt="Foodapp" width="72" height="72">
+        <img class="hub-logo" src="logo.png?v=2" alt="Foods" width="72" height="72">
         <a class="hub-avatar" routerLink="/family" aria-label="الحساب">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.1"></circle><path d="M6 19.2c1.1-3 3.2-4.5 6-4.5s4.9 1.5 6 4.5"></path></svg>
           <i class="dot"></i>
