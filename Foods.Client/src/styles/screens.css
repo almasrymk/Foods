@@ -209,3 +209,6 @@
 
 /* price sheet open: hide the fixed summary bar and tab bar under it */
 body.ps-open .fa-summary, body.ps-open fa-tab-bar, body.ps-open fa-selected-sheet { display: none !important; }
+
+/* prices on, but no ingredient of the dish has a price yet */
+.fa-row-price.none { background: #FFF1E2; border-color: #F9CF9F; color: #C45A00; }

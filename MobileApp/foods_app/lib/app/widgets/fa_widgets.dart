@@ -1178,9 +1178,21 @@ class FaFoodRow extends ConsumerWidget {
                   ),
                 ],
                 // سعر الأكلة للأسرة (only when the customer works with prices).
-                if (item.price != null && item.price! > 0) ...[
+                if (item.price != null) ...[
                   SizedBox(height: s(8)),
-                  FaPriceTag(item.price!, size: 21, missing: item.priceMissing),
+                  if (item.price! > 0)
+                    FaPriceTag(item.price!, size: 21, missing: item.priceMissing)
+                  else
+                    // Prices are on but none of the dish's ingredients has a price yet.
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: s(12), vertical: s(4)),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF1E2),
+                        borderRadius: BorderRadius.circular(s(21)),
+                        border: Border.all(color: const Color(0xFFF9CF9F), width: s(1.2)),
+                      ),
+                      child: Text('مفيش سعر لسه', style: Fa.text(s(19), weight: FontWeight.w800, color: const Color(0xFFC45A00), height: 1.2)),
+                    ),
                 ],
               ],
             ),

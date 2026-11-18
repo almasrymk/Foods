@@ -12,7 +12,7 @@ import { egp } from '../../../core/money';
   selector: 'fa-food-row',
   imports: [RouterLink, FaIconComponent, FaPhotoSliderComponent],
   template: `
-    <article class="fa-row" [class.sel-green]="greenSelection && selected" [class.priced]="(item.price || 0) > 0">
+    <article class="fa-row" [class.sel-green]="greenSelection && selected" [class.priced]="item.price != null">
       <a class="fa-row-img" [routerLink]="['/items', item.id]" [queryParams]="cuisineId ? { cuisine: cuisineId } : null">
         @if ((item.images?.length || 0) > 1) {
           <fa-photo-slider [images]="item.images" [alt]="item.title" [fallback]="item.image" />
@@ -26,6 +26,8 @@ import { egp } from '../../../core/money';
       <p class="fa-row-desc">{{ item.desc }}</p>
       @if ((item.price || 0) > 0) {
         <span class="fa-row-price"><fa-icon name="tag" [weight]="2.2" />{{ money(item.price) }}{{ item.priceMissing ? ' +' : '' }}</span>
+      } @else if (item.price === 0) {
+        <span class="fa-row-price none"><fa-icon name="tag" [weight]="2.2" />مفيش سعر لسه</span>
       }
       <i class="fa-vline"></i>
       <button type="button" class="fa-check" [class.on]="selected" (click)="toggleCheck()"
