@@ -1,0 +1,63 @@
+/* Mockup px (941 wide), shifted up 50px to drop the phone status bar. */
+.pl { background: #FDF8F3; }
+.pl-cv { position: relative; min-height: calc(1100 * var(--s)); padding-bottom: calc(40 * var(--s)); margin-top: calc(-143 * var(--s)); }
+/* the shared top bar replaces the canvas' own avatar/logo/bell and sits over its top 143px */
+.pl-top { position: relative; z-index: 2; }
+
+.pl-profile {
+  position: absolute; left: calc(32 * var(--s)); top: calc(32 * var(--s)); width: calc(83 * var(--s)); height: calc(83 * var(--s));
+  border-radius: 50%; display: grid; place-items: center; background: #fff; color: #4A2A12; font-size: calc(54 * var(--s));
+  box-shadow: 0 calc(4 * var(--s)) calc(14 * var(--s)) rgba(0, 0, 0, .08);
+}
+.pl-dot { position: absolute; left: calc(97 * var(--s)); top: calc(37 * var(--s)); width: calc(11 * var(--s)); height: calc(11 * var(--s)); border-radius: 50%; background: #F37202; }
+.pl-logo { position: absolute; left: calc(403 * var(--s)); top: calc(6 * var(--s)); width: calc(145 * var(--s)); height: calc(125 * var(--s)); }
+.pl-bell { position: absolute; left: calc(843 * var(--s)); top: calc(48 * var(--s)); font-size: calc(46 * var(--s)); color: #2E1E12; }
+.pl-badge {
+  position: absolute; left: calc(872 * var(--s)); top: calc(43 * var(--s)); width: calc(30 * var(--s)); height: calc(30 * var(--s));
+  border-radius: 50%; display: grid; place-items: center; background: #E5262A; color: #fff; font-size: calc(19 * var(--s)); font-weight: 700;
+}
+
+.pl-art {
+  position: absolute; left: 0; top: calc(110 * var(--s)); width: calc(356 * var(--s)); height: calc(292 * var(--s));
+  -webkit-mask-image: linear-gradient(90deg, #000 78%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 85%, transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, #000 78%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 85%, transparent); mask-composite: intersect;
+}
+.pl-fork { position: absolute; left: calc(832 * var(--s)); top: calc(184 * var(--s)); width: calc(72 * var(--s)); height: calc(76 * var(--s)); }
+.pl-title {
+  position: absolute; right: calc(131 * var(--s)); top: calc(220 * var(--s)); transform: translateY(-50%);
+  font-size: calc(58 * var(--s)); font-weight: 800; color: #2E1E12; white-space: nowrap;
+}
+.pl-underline { position: absolute; left: calc(532 * var(--s)); top: calc(248 * var(--s)); width: calc(68 * var(--s)); height: calc(22 * var(--s)); }
+.pl-sub {
+  position: absolute; right: calc(51 * var(--s)); top: calc(302 * var(--s)); transform: translateY(-50%);
+  font-size: calc(24 * var(--s)); font-weight: 500; color: #3F3129; white-space: nowrap;
+}
+
+.pl-tile {
+  position: absolute; width: calc(278 * var(--s)); border-radius: calc(28 * var(--s)); overflow: hidden;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0;
+  padding: calc(10 * var(--s)) 0 0;
+  box-shadow: 0 calc(5 * var(--s)) calc(14 * var(--s)) rgba(120, 72, 30, .1);
+  outline: calc(3 * var(--s)) solid transparent; outline-offset: calc(-3 * var(--s)); transition: outline-color .15s;
+}
+.pl-tile-icon {
+  width: calc(48 * var(--s)); height: calc(48 * var(--s));
+  object-fit: contain; flex: none; margin: 0;
+}
+.pl-tile b {
+  margin: 0;
+  text-align: center;
+  font-size: calc(34 * var(--s)); font-weight: 800; white-space: nowrap; flex: none;
+  line-height: 1.1;
+}
+.pl-tile-count {
+  text-align: center; flex: none; opacity: .75;
+  font-size: calc(24 * var(--s)); font-weight: 800; line-height: 1.2;
+}
+.pl-tile-photo {
+  width: 100%; flex: 1; min-height: 0; margin: 0;
+  object-fit: cover;
+  align-self: stretch;
+}
+.pl-tile:active { outline-color: #F37202; }

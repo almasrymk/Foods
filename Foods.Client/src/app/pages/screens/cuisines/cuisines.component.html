@@ -1,0 +1,54 @@
+<div class="fa-screen cu" dir="rtl">
+  <fa-top-bar />
+
+  <!-- header: same layout as "اختر نوع الوجبة" -->
+  <div class="cu-head">
+    <img class="cu-art" src="assets/screens/cuisines/hero.svg" alt="">
+    <img class="cu-fork" src="assets/screens/plan/fork.png" alt="">
+    <h1 class="cu-title">{{ texts.title }}</h1>
+    <img class="cu-underline" src="assets/screens/plan/underline.png" alt="">
+    <p class="cu-sub">{{ texts.sub }}</p>
+  </div>
+
+  @if (loading) {
+    <div class="cu-grid">
+      @for (s of skeletons; track s) { <div class="cu-tile cu-skel"></div> }
+    </div>
+  } @else if (!tiles.length) {
+    <p class="cu-empty">{{ texts.empty }}</p>
+  } @else {
+    <div class="cu-grid">
+      <!-- all cuisines -->
+      <button type="button" class="cu-tile all" (click)="openAll()">
+        <span class="cu-pic"><fa-icon class="cu-pic-ico" name="cloche" [weight]="1.6" /></span>
+        <span class="cu-mid"><fa-icon name="grid" [weight]="2" /></span>
+        <b>الكل</b>
+        <small class="cu-count">{{ totalCount }} أكلة</small>
+      </button>
+
+      @for (tile of tiles; track tile.id) {
+        <button type="button" class="cu-tile" (click)="open(tile)" [style.background]="tile.bg">
+          <!-- picture spot: the cuisine picture, or its icon shown large when there is no picture -->
+          <span class="cu-pic" [class.no-photo]="!tile.image || tile.broken" [style.color]="tile.color">
+            @if (tile.image && !tile.broken) {
+              <img class="cu-photo" [src]="tile.image" [alt]="tile.label" loading="lazy" (error)="tile.broken = true">
+            } @else if (tile.iconImage) {
+              <img class="cu-pic-icon" [src]="tile.iconImage" alt="">
+            } @else {
+              <fa-icon class="cu-pic-ico" [name]="tile.iconKey" [weight]="1.5" />
+            }
+          </span>
+          @if (tile.image && !tile.broken) {
+            <span class="cu-mid" [style.color]="tile.color">
+              @if (tile.iconImage) { <img [src]="tile.iconImage" alt=""> } @else { <fa-icon [name]="tile.iconKey" [weight]="1.8" /> }
+            </span>
+          }
+          <b [style.color]="tile.color">{{ tile.label }}</b>
+          <small class="cu-count" [style.color]="tile.color">{{ tile.count }} أكلة</small>
+        </button>
+      }
+    </div>
+  }
+
+  <fa-tab-bar force="home" />
+</div>

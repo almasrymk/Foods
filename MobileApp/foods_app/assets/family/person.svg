@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+<defs>
+<clipPath id="cperson"><circle cx="60" cy="60" r="60"/></clipPath>
+</defs>
+<g clip-path="url(#cperson)"><rect width="120" height="120" fill="#FFF0DF"/>
+<g transform="translate(60 62) scale(1.2) translate(-60 -62)"><path d="M24 124 Q24 92 60 90 Q96 92 96 124Z" fill="#F59A3C"/><circle cx="60" cy="56" r="22" fill="#F7B26B"/><circle cx="52" cy="56" r="2.6" fill="#fff"/><circle cx="68" cy="56" r="2.6" fill="#fff"/><path d="M53 64 q7 6 14 0" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/></g></g></svg>

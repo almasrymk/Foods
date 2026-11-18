@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Content.ContentCategory.Queries.GetList
+namespace Foods.Application.MasterData.Content.ContentCategory.Queries.GetList
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -18,7 +18,7 @@
                 list = new List<ContentCategory>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(e.Id,e.Name!)).ToList()
+                list.Select(e=> new GetListQueryResponse(e.Id, e.Name!, e.IconPath, e.Color, e.TextColor)).ToList()
                 , null);
         }
     }

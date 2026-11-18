@@ -16,9 +16,14 @@
             {            
             var ob = new Meal
             {
-                Id = new Guid(),
+                Id = Guid.NewGuid(),
                 Name = request.Name,
                 Description = request.Description,
+                ImagePath = request.ImagePath,
+                IconPath = request.IconPath,
+                Color = request.Color,
+                TextColor = request.TextColor,
+                Sort = request.Sort,
                 IsDeleted = false,
                 Status = 0
             };

@@ -21,11 +21,27 @@
         DbSet<ItemGroup> ItemGroups { get; set; }
         DbSet<ItemLevel> ItemLevels { get; set; }
         DbSet<ItemMeal> ItemMeals { get; set; }
+        DbSet<ItemCountry> ItemCountries { get; set; }
         DbSet<TradeMark> TradeMarks { get; set; }
         DbSet<TradeMarkContentGroup> TradeMarkContentGroups { get; set; }
         DbSet<Level> Levels { get; set; }
+        DbSet<Country> Countries { get; set; }
         DbSet<Meal> Meals { get; set; }
+        DbSet<Cuisine> Cuisines { get; set; }
         DbSet<Unit> Units { get; set; }
+        DbSet<PurchasePlace> PurchasePlaces { get; set; }
+        DbSet<AgeBand> AgeBands { get; set; }
+        DbSet<ItemStep> ItemSteps { get; set; }
+        DbSet<ItemVideo> ItemVideos { get; set; }
+        DbSet<ItemImage> ItemImages { get; set; }
+        DbSet<ContentImage> ContentImages { get; set; }
+        DbSet<UserItemContent> UserItemContents { get; set; }
+        DbSet<UserItemStep> UserItemSteps { get; set; }
+        DbSet<ItemPart> ItemParts { get; set; }
+        DbSet<UserItemChoice> UserItemChoices { get; set; }
+        DbSet<Foods.Domain.Entity.MasterData.Content.UserContentPrice> UserContentPrices { get; set; }
+        DbSet<Foods.Domain.Entity.MasterData.Content.ContentCountry> ContentCountries { get; set; }
+        DbSet<Foods.Domain.Entity.MasterData.Item.ItemExtraCategory> ItemExtraCategories { get; set; }
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
 
         int SaveChanges();

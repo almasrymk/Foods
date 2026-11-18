@@ -15,7 +15,7 @@
                 list = new List<Item>();
 
             return new Result<List<SearchQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e => new SearchQueryResponse(e.Id, e.Name!)).ToList()
+                list.Select(e => new SearchQueryResponse(e.Id, e.Name!, e.ImagePath)).ToList()
                 , null);
         }
     }

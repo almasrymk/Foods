@@ -16,7 +16,7 @@
             {            
             var ob = new ContentAlternative
             {
-                Id = new Guid(),
+                Id = Guid.NewGuid(),
                 ContentId = request.ContentId,
                 ContentAlternativeId = request.ContentAlternativeId,
                 IsDeleted = false,

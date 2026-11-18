@@ -20,6 +20,11 @@
 
             ob.Name = request.Name;
             ob.Description = request.Description;
+            ob.ImagePath = request.ImagePath;
+            ob.IconPath = request.IconPath;
+            ob.Color = request.Color;
+            ob.TextColor = request.TextColor;
+            ob.Sort = request.Sort;
 
             var res = await _Repository.UpdateAsync(ob);
             if (await _UnitOfWork.SaveChangeAsync() > 0)

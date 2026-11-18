@@ -14,11 +14,28 @@
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Role>().HasData(
-                new Role { Id = new Guid("92d19009-cb05-4645-a209-552c3e522a56"), Name = "Admin" }
+                new Role { Id = RoleIds.Admin, Name = RoleNames.Admin },
+                new Role { Id = RoleIds.Customer, Name = RoleNames.Customer }
+            );
+
+            modelBuilder.Entity<AgeBand>().HasData(
+                new AgeBand { Id = AgeBandIds.Infant, Name = "رضيع", MinAge = 0, MaxAge = 2, Factor = 0.25m },
+                new AgeBand { Id = AgeBandIds.Child, Name = "طفل", MinAge = 3, MaxAge = 8, Factor = 0.5m },
+                new AgeBand { Id = AgeBandIds.Teen, Name = "يافع", MinAge = 9, MaxAge = 13, Factor = 0.75m },
+                new AgeBand { Id = AgeBandIds.Adult, Name = "بالغ", MinAge = 14, MaxAge = 120, Factor = 1m }
             );
 
             modelBuilder.Entity<User>().HasData(
-                new User { Id = new Guid("111d7bfe-8dda-4af9-b651-f4a8d9008b94"), Name = "Admin", UserName = "Admin" , Password = "1"  , RoleId = new Guid("92d19009-cb05-4645-a209-552c3e522a56") }
+                new User { Id = new Guid("111d7bfe-8dda-4af9-b651-f4a8d9008b94"), Name = "Admin", UserName = "Admin" , Password = "Admin1234"  , RoleId = new Guid("92d19009-cb05-4645-a209-552c3e522a56") }
+            );
+
+            modelBuilder.Entity<Country>().HasData(
+                CountryIds.All.Select(row => new Country
+                {
+                    Id = row.Id,
+                    Name = row.Name,
+                    Dialect = row.Dialect
+                }).ToArray()
             );
         }
 
@@ -40,6 +57,7 @@
         public virtual DbSet<ItemGroup> ItemGroups { get; set; }
         public virtual DbSet<ItemLevel> ItemLevels { get; set; }
         public virtual DbSet<ItemMeal> ItemMeals { get; set; }
+        public virtual DbSet<ItemCountry> ItemCountries { get; set; }
         #endregion
 
         #region TradeMark
@@ -47,8 +65,23 @@
         public virtual DbSet<TradeMarkContentGroup> TradeMarkContentGroups { get; set; }
         #endregion
         public virtual DbSet<Level> Levels { get; set; }
+        public virtual DbSet<Country> Countries { get; set; }
         public virtual DbSet<Meal> Meals { get; set; }
+        public virtual DbSet<Cuisine> Cuisines { get; set; }
         public virtual DbSet<Unit> Units { get; set; }
+        public virtual DbSet<PurchasePlace> PurchasePlaces { get; set; }
+        public virtual DbSet<AgeBand> AgeBands { get; set; }
+        public virtual DbSet<ItemStep> ItemSteps { get; set; }
+        public virtual DbSet<ItemVideo> ItemVideos { get; set; }
+        public virtual DbSet<ItemImage> ItemImages { get; set; }
+        public virtual DbSet<ContentImage> ContentImages { get; set; }
+        public virtual DbSet<UserItemContent> UserItemContents { get; set; }
+        public virtual DbSet<UserItemStep> UserItemSteps { get; set; }
+        public virtual DbSet<ItemPart> ItemParts { get; set; }
+        public virtual DbSet<UserItemChoice> UserItemChoices { get; set; }
+        public virtual DbSet<Foods.Domain.Entity.MasterData.Content.UserContentPrice> UserContentPrices { get; set; }
+        public virtual DbSet<Foods.Domain.Entity.MasterData.Content.ContentCountry> ContentCountries { get; set; }
+        public virtual DbSet<Foods.Domain.Entity.MasterData.Item.ItemExtraCategory> ItemExtraCategories { get; set; }
         #endregion
 
         #region Request
@@ -56,6 +89,7 @@
         public virtual DbSet<Foods.Domain.Entity.Request.RequestContent> RequestContents { get; set; }
         public virtual DbSet<RequestItem> RequestItems { get; set; }
         public virtual DbSet<RequestTrack> RequestTracks { get; set; }
+        public virtual DbSet<RequestShoppingLine> RequestShoppingLines { get; set; }
         #endregion
 
         #region Security
@@ -63,6 +97,10 @@
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<RolePermission> RolePermissions { get; set; }
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<FamilyMember> FamilyMembers { get; set; }
+        public virtual DbSet<Favorite> Favorites { get; set; }
+        public virtual DbSet<UserSetting> UserSettings { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
         #endregion
          
         public DbSet<TEntity> Set<TEntity>() where TEntity : class
@@ -78,10 +116,6 @@
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return base.SaveChangesAsync(cancellationToken);
-        }
-        public override void Dispose()
-        {
-            //this.Dispose();
         }
     }
 }

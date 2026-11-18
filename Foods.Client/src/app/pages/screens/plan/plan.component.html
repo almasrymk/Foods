@@ -1,0 +1,28 @@
+<div class="fa-screen pl" dir="rtl">
+  <!-- shared top bar (same as the home page); the canvas below keeps its mockup positions -->
+  <fa-top-bar class="pl-top" />
+  <div class="pl-cv">
+
+    <img class="pl-art" src="assets/screens/plan/calendar.png" alt="">
+    <img class="pl-fork" src="assets/screens/plan/fork.png" alt="">
+    <h1 class="pl-title">اختر نوع الوجبة</h1>
+    <img class="pl-underline" src="assets/screens/plan/underline.png" alt="">
+    <p class="pl-sub">ابدأ بتحديد الوجبات التي تريد إضافتها إلى خطة الشهر</p>
+
+    @for (meal of meals; track meal.id; let i = $index) {
+      <button type="button" class="pl-tile" (click)="open(meal.id)"
+              [style.left]="'calc(' + left(i) + ' * var(--s))'"
+              [style.top]="'calc(' + top(i) + ' * var(--s))'"
+              [style.height]="'calc(' + height(i) + ' * var(--s))'"
+              [style.background]="meal.bg">
+        @if (meal.icon) {
+          <img class="pl-tile-icon" [src]="meal.icon" alt="">
+        }
+        <b [style.color]="meal.color">{{ meal.label }}</b>
+        <span class="pl-tile-count" [style.color]="meal.color">{{ meal.count ?? 0 }}</span>
+        <img class="pl-tile-photo" [src]="meal.image" [alt]="meal.label">
+      </button>
+    }
+  </div>
+  <fa-tab-bar force="home" />
+</div>

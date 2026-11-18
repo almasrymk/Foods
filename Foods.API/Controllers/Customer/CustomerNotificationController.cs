@@ -1,0 +1,51 @@
+namespace Foods.API.Controllers.Customer
+{
+    using MediatR;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Foods.Domain.Entity.Security;
+    using Foods.Application.Customer.Notifications;
+    using Foods.Application.Customer.Profile;
+
+    [Authorize(Roles = $"{RoleNames.Customer},{RoleNames.Admin}")]
+    [ApiController]
+    [Route("customer")]
+    public class CustomerNotificationController(ISender sender) : ControllerBase
+    {
+        [HttpGet("settings")]
+        public async Task<IActionResult> Settings(CancellationToken cancellationToken)
+            => this.From(await sender.Send(new GetSettingsQuery(), cancellationToken));
+
+        [HttpPut("settings")]
+        public async Task<IActionResult> SaveSettings([FromBody] SaveSettingsCommand command, CancellationToken cancellationToken)
+            => this.From(await sender.Send(command, cancellationToken));
+
+        [HttpPut("profile")]
+        public async Task<IActionResult> SaveProfile([FromBody] SaveProfileCommand command, CancellationToken cancellationToken)
+            => this.From(await sender.Send(command, cancellationToken));
+
+        [HttpPut("profile/photo")]
+        public async Task<IActionResult> SaveProfilePhoto([FromBody] SaveProfilePhotoCommand command, CancellationToken cancellationToken)
+            => this.From(await sender.Send(command, cancellationToken));
+
+        [HttpDelete("profile/photo")]
+        public async Task<IActionResult> RemoveProfilePhoto(CancellationToken cancellationToken)
+            => this.From(await sender.Send(new SaveProfilePhotoCommand(null), cancellationToken));
+
+        [HttpGet("notifications")]
+        public async Task<IActionResult> Notifications(int skip, int? take, bool? unread, CancellationToken cancellationToken)
+            => this.From(await sender.Send(new GetNotificationsQuery(skip, take ?? 20, unread), cancellationToken));
+
+        [HttpGet("notifications/unread-count")]
+        public async Task<IActionResult> UnreadCount(CancellationToken cancellationToken)
+            => this.From(await sender.Send(new GetUnreadCountQuery(), cancellationToken));
+
+        [HttpPost("notifications/{id:guid}/read")]
+        public async Task<IActionResult> MarkRead(Guid id, CancellationToken cancellationToken)
+            => this.From(await sender.Send(new MarkNotificationReadCommand(id), cancellationToken));
+
+        [HttpPost("notifications/read-all")]
+        public async Task<IActionResult> MarkAllRead(CancellationToken cancellationToken)
+            => this.From(await sender.Send(new MarkAllNotificationsReadCommand(), cancellationToken));
+    }
+}

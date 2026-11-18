@@ -23,6 +23,19 @@
             ob.ContentGroupId = request.ContentGroupId;
             ob.MiniQuantity = request.MiniQuantity;
             ob.UnitId = request.UnitId;
+            ob.ImagePath = request.ImagePath;
+            ob.PurchasePlaceId = request.PurchasePlaceId;
+            ob.PurchaseMode = request.PurchaseMode;
+            ob.PackageName = request.PackageName;
+            ob.PurchaseStep = request.PurchaseStep;
+            ob.PurchaseIncrement = request.PurchaseIncrement;
+            ob.PurchaseUnitPrice = request.PurchaseUnitPrice;
+            ob.PurchaseMinAmount = request.PurchaseMinAmount;
+            ob.Price = request.Price < 0 ? 0 : request.Price;
+            ob.PriceQuantity = request.PriceQuantity > 0 ? request.PriceQuantity : 1;
+            ob.PriceUnitId = request.PriceUnitId;
+            ob.CuisineId = request.CuisineId;
+            ob.Sort = request.Sort;
             ob.IsDeleted = false;
             ob.Status = 0;
 

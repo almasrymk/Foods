@@ -7,7 +7,7 @@
     using Foods.Application.Abstraction.Command;
     using Foods.Domain.Entity.MasterData.Item;
 
-    public sealed class UpdateCommandHandler(IUnitOfWork _UnitOfWork, IRepository<Item> _Repository) : ICommandHandler<UpdateCommand, UpdateCommandResponse>
+    public sealed class UpdateCommandHandler(IUnitOfWork _UnitOfWork, IRepository<Item> _Repository, Foods.Domain.Abstraction.IFoodsDbContext db) : ICommandHandler<UpdateCommand, UpdateCommandResponse>
     {
         public async Task<Result<UpdateCommandResponse>> Handle(UpdateCommand request, CancellationToken cancellationToken)
         {
@@ -20,9 +20,14 @@
 
             ob.Name = request.Name;
             ob.ItemCategoryId = request.ItemCategoryId;
+            ob.CuisineId = request.CuisineId;
             ob.ItemGroupId = request.ItemGroupId;
             ob.Summary = request.Summary;
             ob.Description = request.Description;
+            ob.ImagePath = request.ImagePath;
+            ob.ShowToCustomer = request.ShowToCustomer;
+            ob.Sort = request.Sort;
+            await Foods.Application.MasterData.Item.Item.ItemCategories.Save(db, ob.Id, ob.ItemCategoryId, request.CategoryIds, cancellationToken);
             ob.IsDeleted = false;
             ob.Status = 0;
 

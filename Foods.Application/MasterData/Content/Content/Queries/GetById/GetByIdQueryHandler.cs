@@ -23,7 +23,20 @@
                     Ob.ContentCategoryId , 
                     Ob.ContentGroupId,
                     Ob.UnitId ,
-                    Ob.MiniQuantity
+                    Ob.MiniQuantity,
+                    Ob.ImagePath,
+                    Ob.PurchasePlaceId,
+                    Ob.PurchaseMode,
+                    Ob.PackageName,
+                    Ob.PurchaseStep,
+                    Ob.PurchaseIncrement,
+                    Ob.PurchaseUnitPrice,
+                    Ob.PurchaseMinAmount,
+                    Ob.Price,
+                    Ob.PriceQuantity,
+                    Ob.PriceUnitId,
+                    Ob.CuisineId,
+                    Ob.Sort
                     ) , null);
         }
     }

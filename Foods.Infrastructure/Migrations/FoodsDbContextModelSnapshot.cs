@@ -22,6 +22,77 @@ namespace Foods.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Foods.Domain.Entity.MasterData.AgeBand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Factor")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxAge")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinAge")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AgeBands");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a1000001-0000-4000-8000-000000000001"),
+                            Factor = 0.25m,
+                            IsDeleted = false,
+                            MaxAge = 2,
+                            MinAge = 0,
+                            Name = "رضيع",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000001-0000-4000-8000-000000000002"),
+                            Factor = 0.5m,
+                            IsDeleted = false,
+                            MaxAge = 8,
+                            MinAge = 3,
+                            Name = "طفل",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000001-0000-4000-8000-000000000003"),
+                            Factor = 0.75m,
+                            IsDeleted = false,
+                            MaxAge = 13,
+                            MinAge = 9,
+                            Name = "يافع",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000001-0000-4000-8000-000000000004"),
+                            Factor = 1m,
+                            IsDeleted = false,
+                            MaxAge = 120,
+                            MinAge = 14,
+                            Name = "بالغ",
+                            Status = 0
+                        });
+                });
+
             modelBuilder.Entity("Foods.Domain.Entity.MasterData.Content.Content", b =>
                 {
                     b.Property<Guid>("Id")
@@ -34,6 +105,9 @@ namespace Foods.Infrastructure.Migrations
                     b.Property<Guid>("ContentGroupId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -42,6 +116,9 @@ namespace Foods.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("PurchasePlaceId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -189,6 +266,207 @@ namespace Foods.Infrastructure.Migrations
                     b.ToTable("ContentTradeMarks");
                 });
 
+            modelBuilder.Entity("Foods.Domain.Entity.MasterData.Country", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Dialect")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Countries");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111105"),
+                            Dialect = "شامي",
+                            IsDeleted = false,
+                            Name = "الأردن",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111107"),
+                            Dialect = "خليجي",
+                            IsDeleted = false,
+                            Name = "الإمارات",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111111"),
+                            Dialect = "خليجي",
+                            IsDeleted = false,
+                            Name = "البحرين",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-11111111110a"),
+                            Dialect = "تونسي",
+                            IsDeleted = false,
+                            Name = "تونس",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-11111111110b"),
+                            Dialect = "جزائري",
+                            IsDeleted = false,
+                            Name = "الجزائر",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111117"),
+                            Dialect = "قمري",
+                            IsDeleted = false,
+                            Name = "جزر القمر",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111115"),
+                            Dialect = "جيبوتي",
+                            IsDeleted = false,
+                            Name = "جيبوتي",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111106"),
+                            Dialect = "خليجي",
+                            IsDeleted = false,
+                            Name = "السعودية",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111113"),
+                            Dialect = "سوداني",
+                            IsDeleted = false,
+                            Name = "السودان",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111102"),
+                            Dialect = "شامي",
+                            IsDeleted = false,
+                            Name = "سوريا",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111114"),
+                            Dialect = "صومالي",
+                            IsDeleted = false,
+                            Name = "الصومال",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-11111111110c"),
+                            Dialect = "عراقي",
+                            IsDeleted = false,
+                            Name = "العراق",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-11111111110e"),
+                            Dialect = "خليجي",
+                            IsDeleted = false,
+                            Name = "عُمان",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111104"),
+                            Dialect = "شامي",
+                            IsDeleted = false,
+                            Name = "فلسطين",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-11111111110f"),
+                            Dialect = "خليجي",
+                            IsDeleted = false,
+                            Name = "قطر",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111108"),
+                            Dialect = "خليجي",
+                            IsDeleted = false,
+                            Name = "الكويت",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111103"),
+                            Dialect = "شامي",
+                            IsDeleted = false,
+                            Name = "لبنان",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111112"),
+                            Dialect = "ليبي",
+                            IsDeleted = false,
+                            Name = "ليبيا",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111101"),
+                            Dialect = "مصري",
+                            IsDeleted = false,
+                            Name = "مصر",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111109"),
+                            Dialect = "مغربي",
+                            IsDeleted = false,
+                            Name = "المغرب",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-111111111116"),
+                            Dialect = "حساني",
+                            IsDeleted = false,
+                            Name = "موريتانيا",
+                            Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a1111111-1111-4111-8111-11111111110d"),
+                            Dialect = "يمني",
+                            IsDeleted = false,
+                            Name = "اليمن",
+                            Status = 0
+                        });
+                });
+
             modelBuilder.Entity("Foods.Domain.Entity.MasterData.Item.Item", b =>
                 {
                     b.Property<Guid>("Id")
@@ -196,6 +474,9 @@ namespace Foods.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
@@ -270,6 +551,41 @@ namespace Foods.Infrastructure.Migrations
                     b.ToTable("ItemContents");
                 });
 
+            modelBuilder.Entity("Foods.Domain.Entity.MasterData.Item.ItemCountry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CountryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItemCountries");
+                });
+
             modelBuilder.Entity("Foods.Domain.Entity.MasterData.Item.ItemGroup", b =>
                 {
                     b.Property<Guid>("Id")
@@ -336,6 +652,61 @@ namespace Foods.Infrastructure.Migrations
                     b.ToTable("ItemMeals");
                 });
 
+            modelBuilder.Entity("Foods.Domain.Entity.MasterData.Item.ItemStep", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Sort")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItemSteps");
+                });
+
+            modelBuilder.Entity("Foods.Domain.Entity.MasterData.Item.ItemVideo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Sort")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItemVideos");
+                });
+
             modelBuilder.Entity("Foods.Domain.Entity.MasterData.Level", b =>
                 {
                     b.Property<Guid>("Id")
@@ -365,6 +736,41 @@ namespace Foods.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Color")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IconPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Sort")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TextColor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Meals");
+                });
+
+            modelBuilder.Entity("Foods.Domain.Entity.MasterData.PurchasePlace", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -376,7 +782,7 @@ namespace Foods.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Meals");
+                    b.ToTable("PurchasePlaces");
                 });
 
             modelBuilder.Entity("Foods.Domain.Entity.MasterData.TradeMark.TradeMark", b =>
@@ -472,6 +878,9 @@ namespace Foods.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
@@ -527,7 +936,13 @@ namespace Foods.Infrastructure.Migrations
                     b.Property<Guid>("ItemId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("PeopleCount")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("RepeatCount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("RequestId")
@@ -539,6 +954,38 @@ namespace Foods.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RequestItems");
+                });
+
+            modelBuilder.Entity("Foods.Domain.Entity.Request.RequestShoppingLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ContentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("PurchasePlaceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UnitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RequestShoppingLines");
                 });
 
             modelBuilder.Entity("Foods.Domain.Entity.Request.RequestTrack", b =>
@@ -565,6 +1012,55 @@ namespace Foods.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RequestTracks");
+                });
+
+            modelBuilder.Entity("Foods.Domain.Entity.Security.FamilyMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Age")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FamilyMembers");
+                });
+
+            modelBuilder.Entity("Foods.Domain.Entity.Security.Favorite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Favorites");
                 });
 
             modelBuilder.Entity("Foods.Domain.Entity.Security.Permission", b =>
@@ -619,6 +1115,13 @@ namespace Foods.Infrastructure.Migrations
                             IsDeleted = false,
                             Name = "Admin",
                             Status = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("42997ac6-a9c6-4e97-f108-3a1a18b2ba01"),
+                            IsDeleted = false,
+                            Name = "Customer",
+                            Status = 0
                         });
                 });
 
@@ -649,6 +1152,9 @@ namespace Foods.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CountryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ImagePath")
@@ -685,7 +1191,7 @@ namespace Foods.Infrastructure.Migrations
                             Id = new Guid("111d7bfe-8dda-4af9-b651-f4a8d9008b94"),
                             IsDeleted = false,
                             Name = "Admin",
-                            Password = "1",
+                            Password = "Admin1234",
                             RoleId = new Guid("92d19009-cb05-4645-a209-552c3e522a56"),
                             Status = 0,
                             UserName = "Admin"

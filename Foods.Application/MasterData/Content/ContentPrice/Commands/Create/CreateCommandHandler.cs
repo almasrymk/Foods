@@ -16,7 +16,7 @@
             {
                 var ob = new ContentPrice
                 {
-                    Id = new Guid(),
+                    Id = Guid.NewGuid(),
                     ContentId = request.ContentId,
                     Price = request.Price,
                     IsCurrent = request.IsCurrent,

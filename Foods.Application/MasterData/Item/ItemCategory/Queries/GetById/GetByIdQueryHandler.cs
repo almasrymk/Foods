@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Item.ItemCategory.Queries.GetById
+namespace Foods.Application.MasterData.Item.ItemCategory.Queries.GetById
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -17,7 +17,7 @@
                 Ob = new ItemCategory();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
-                new GetByIdQueryResponse(Ob.Id , Ob.Name!)
+                new GetByIdQueryResponse(Ob.Id, Ob.Name!, Ob.IconPath, Ob.Color, Ob.TextColor, Ob.Sort)
                 , null);
         }
     }

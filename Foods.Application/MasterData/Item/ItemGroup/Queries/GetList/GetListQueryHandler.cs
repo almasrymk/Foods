@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Item.ItemGroup.Queries.GetList
+namespace Foods.Application.MasterData.Item.ItemGroup.Queries.GetList
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -18,7 +18,7 @@
                 list = new List<ItemGroup>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(e.Id,e.Name!)).ToList()
+                list.OrderBy(e => e.Sort).ThenBy(e => e.Name).Select(e => new GetListQueryResponse(e.Id, e.Name!, e.IconPath, e.Color, e.TextColor, e.Sort)).ToList()
                 , null);
         }
     }

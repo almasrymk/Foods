@@ -2,6 +2,8 @@
 {
     public class ContentCategory : BaseMasterDataEntity
     {
-
+        public string? IconPath { get; set; }
+        public string? Color { get; set; }
+        public string? TextColor { get; set; }
     }
 }

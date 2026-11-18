@@ -1,8 +1,8 @@
-﻿namespace Foods.Application.MasterData.Unit.Queries.GetById
+namespace Foods.Application.MasterData.Unit.Queries.GetById
 {
     using Foods.Application.Abstraction.Query;
 
     public sealed record GetByIdQuery(Guid Id) : IQuery<GetByIdQueryResponse>;
 
-    public sealed record GetByIdQueryResponse(Guid Id, string Name, string? NickName, decimal BasicQuantity, bool BeDivided);
+    public sealed record GetByIdQueryResponse(Guid Id, string Name, string? NickName, decimal BasicQuantity, bool BeDivided, string? IconPath, string? Color, string? TextColor);
 }

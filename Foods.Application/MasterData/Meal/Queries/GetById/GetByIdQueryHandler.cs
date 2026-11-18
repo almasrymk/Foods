@@ -17,7 +17,7 @@
                 Ob = new Meal();
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
-                new GetByIdQueryResponse(Ob.Id , Ob.Name! , Ob.Description!)
+                new GetByIdQueryResponse(Ob.Id , Ob.Name! , Ob.Description!, Ob.ImagePath, Ob.IconPath, Ob.Color, Ob.TextColor, Ob.Sort)
                 , null);
         }
     }

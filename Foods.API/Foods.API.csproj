@@ -25,6 +25,18 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
   </ItemGroup>
 
+  <Target Name="PublishAngular" BeforeTargets="ComputeFilesToPublish">
+    <Exec WorkingDirectory="..\Foods.Client" Command="npm run build -- --configuration production" />
+    <ItemGroup>
+      <AngularFile Include="..\Foods.Client\dist\foods.client\browser\**" />
+      <ResolvedFileToPublish Include="@(AngularFile)">
+        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <ProjectReference Include="..\Foods.Application\Foods.Application.csproj" />
     <ProjectReference Include="..\Foods.Infrastructure\Foods.Infrastructure.csproj" />

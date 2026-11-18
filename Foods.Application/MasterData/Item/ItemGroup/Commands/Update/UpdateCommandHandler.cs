@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Item.ItemGroup.Commands.Update
+namespace Foods.Application.MasterData.Item.ItemGroup.Commands.Update
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -19,6 +19,10 @@
                     new List<string> { "Error"});
 
             ob.Name = request.Name;
+            ob.IconPath = request.IconPath;
+            ob.Color = request.Color;
+            ob.TextColor = request.TextColor;
+            ob.Sort = request.Sort;
 
             var res = await _Repository.UpdateAsync(ob);
             if (await _UnitOfWork.SaveChangeAsync() > 0)
