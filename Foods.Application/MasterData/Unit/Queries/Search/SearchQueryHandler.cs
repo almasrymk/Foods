@@ -16,11 +16,14 @@
 
             return new Result<List<SearchQueryResponse>>(System.Net.HttpStatusCode.OK,
                 list.Select(e => new SearchQueryResponse(
-                    e.Id, 
+                    e.Id,
                     e.Name!,
                     e.NickName,
                     e.BasicQuantity,
-                    e.BeDivided)).ToList(), null);
+                    e.BeDivided,
+                    e.IconPath,
+                    e.Color,
+                    e.TextColor)).ToList(), null);
         }
     }
 }

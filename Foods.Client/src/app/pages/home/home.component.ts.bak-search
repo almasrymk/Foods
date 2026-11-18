@@ -1,0 +1,342 @@
+import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { ApiService } from '../../core/api.service';
+import { DraftService } from '../../core/draft.service';
+import { mediaUrl } from '../../core/environment';
+import { ItemCard, MealCard, MealItemFilter } from '../../core/models';
+import { FaTabBarComponent } from '../screens/shared/tab-bar.component';
+import { FaLogoComponent } from '../screens/shared/logo.component';
+import { FaIconComponent } from '../screens/shared/icon.component';
+
+const MEAL_TONES = [
+  { color: '#FEDD8C', textColor: '#4A2A12' },
+  { color: '#FEDABD', textColor: '#4A2A12' },
+  { color: '#E7D8F4', textColor: '#4E1F78' },
+  { color: '#DBEFD9', textColor: '#1E2A1E' },
+  { color: '#E2F1FB', textColor: '#1E3A5F' },
+  { color: '#FDE4EB', textColor: '#4A1F2E' }
+];
+
+const PAGE_SIZE = 8;
+const MAX_SUGGESTED = 20;
+
+type SlideTrack = 'categories' | 'cuisines' | 'meals';
+
+interface SuggestedMeal {
+  id: string;
+  title: string;
+  image: string;
+  minutes: number;
+  persons: number;
+  isFavorite: boolean;
+  quantity: number;
+  cuisineId?: string | null;
+}
+
+@Component({
+  selector: 'app-home',
+  imports: [RouterLink, FaTabBarComponent, FaLogoComponent, FaIconComponent],
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.css'
+})
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('categoriesLane') categoriesLane?: ElementRef<HTMLElement>;
+  @ViewChild('cuisinesLane') cuisinesLane?: ElementRef<HTMLElement>;
+  @ViewChild('mealsLane') mealsLane?: ElementRef<HTMLElement>;
+
+  cuisines: MealItemFilter[] = [];
+  suggested: SuggestedMeal[] = [];
+  meals: MealCard[] = [];
+  query = '';
+  cuisineId = '';
+  loadingSuggested = false;
+  loadingMore = false;
+  slideNav: Record<SlideTrack, { prev: boolean; next: boolean }> = {
+    categories: { prev: false, next: false },
+    cuisines: { prev: false, next: false },
+    meals: { prev: false, next: false }
+  };
+  private searchTimer = 0;
+  private hasMore = true;
+  private resizeObs?: ResizeObserver;
+  private draftSub?: Subscription;
+  private readonly onWinResize = () => this.refreshAllSlideNav();
+
+  constructor(
+    private api: ApiService,
+    private router: Router,
+    private zone: NgZone,
+    private draft: DraftService
+  ) {}
+
+  scrollTrack(track: SlideTrack, dir: 1 | -1): void {
+    const lane = this.laneEl(track);
+    if (!lane) return;
+
+    const child = lane.querySelector(':scope > *') as HTMLElement | null;
+    const styles = getComputedStyle(lane);
+    const gap = parseFloat(styles.columnGap || styles.gap || '0') || 0;
+    const step = (child?.offsetWidth || Math.round(lane.clientWidth * 0.7)) + gap;
+    // dir 1 = نحو نهاية القائمة (يسار في RTL)، dir -1 = نحو البداية (يمين في RTL)
+    const rtl = styles.direction === 'rtl';
+    const delta = (rtl ? -dir : dir) * step;
+    lane.scrollBy({ left: delta, behavior: 'smooth' });
+    window.setTimeout(() => {
+      this.updateSlideNav(track);
+      if (track === 'meals') this.onMealsScroll();
+    }, 320);
+  }
+
+  onTrackScroll(track: SlideTrack): void {
+    this.updateSlideNav(track);
+    if (track === 'meals') this.onMealsScroll();
+  }
+
+  ngOnInit(): void {
+    this.draft.bootFromServer();
+    this.draftSub = this.draft.selectionCount$.subscribe(() => this.syncSuggestedFromDraft());
+    this.api.meals().subscribe({
+      next: meals => {
+        this.meals = [...meals].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+        this.queueSlideNavRefresh();
+      }
+    });
+    this.api.cuisines().subscribe({
+      next: filters => {
+        this.cuisines = filters.filter(chip => !!chip.id);
+        this.queueSlideNavRefresh();
+      }
+    });
+    this.reloadSuggested();
+  }
+
+  ngAfterViewInit(): void {
+    this.resizeObs = new ResizeObserver(() => {
+      this.zone.run(() => this.refreshAllSlideNav());
+    });
+    for (const track of ['categories', 'cuisines', 'meals'] as SlideTrack[]) {
+      const el = this.laneEl(track);
+      if (el) this.resizeObs.observe(el);
+    }
+    window.addEventListener('resize', this.onWinResize, { passive: true });
+    this.queueSlideNavRefresh();
+  }
+
+  ngOnDestroy(): void {
+    window.clearTimeout(this.searchTimer);
+    window.removeEventListener('resize', this.onWinResize);
+    this.resizeObs?.disconnect();
+    this.draftSub?.unsubscribe();
+  }
+
+  private laneEl(track: SlideTrack): HTMLElement | undefined {
+    return track === 'categories' ? this.categoriesLane?.nativeElement
+      : track === 'cuisines' ? this.cuisinesLane?.nativeElement
+      : this.mealsLane?.nativeElement;
+  }
+
+  private queueSlideNavRefresh(): void {
+    queueMicrotask(() => this.refreshAllSlideNav());
+  }
+
+  private refreshAllSlideNav(): void {
+    this.updateSlideNav('categories');
+    this.updateSlideNav('cuisines');
+    this.updateSlideNav('meals');
+  }
+
+  private updateSlideNav(track: SlideTrack): void {
+    const lane = this.laneEl(track);
+    if (!lane) {
+      this.slideNav[track] = { prev: false, next: false };
+      return;
+    }
+
+    const items = Array.from(lane.children).filter(node => {
+      const el = node as HTMLElement;
+      return !el.classList.contains('hm-meal-loading');
+    }) as HTMLElement[];
+
+    if (!items.length) {
+      this.slideNav[track] = { prev: false, next: false };
+      return;
+    }
+
+    const laneRect = lane.getBoundingClientRect();
+    const first = items[0].getBoundingClientRect();
+    const last = items[items.length - 1].getBoundingClientRect();
+    const eps = 8;
+    const rtl = getComputedStyle(lane).direction === 'rtl';
+
+    // السهم يظهر فقط لو في جزء من الكروت متخفي برا الحاوية
+    const showPrev = rtl ? first.right > laneRect.right + eps : first.left < laneRect.left - eps;
+    const showNext = rtl ? last.left < laneRect.left - eps : last.right > laneRect.right + eps;
+
+    this.slideNav[track] = { prev: showPrev, next: showNext };
+  }
+
+  selectCuisine(chip: MealItemFilter): void {
+    const cuisineId = chip.id || undefined;
+    this.router.navigate(['/meals', 'all'], {
+      queryParams: cuisineId ? { cuisineId } : {},
+      state: { name: 'الكل' }
+    });
+  }
+
+  reloadSuggested(): void {
+    this.queueSlideNavRefresh();
+    window.clearTimeout(this.searchTimer);
+    this.searchTimer = window.setTimeout(() => {
+      this.suggested = [];
+      this.hasMore = true;
+      this.loadSuggestedPage(true);
+    }, this.query ? 250 : 0);
+  }
+
+  onMealsScroll(): void {
+    const lane = this.mealsLane?.nativeElement;
+    if (!lane || !this.hasMore || this.loadingMore || this.loadingSuggested) return;
+    const max = lane.scrollWidth - lane.clientWidth;
+    if (max <= 0) return;
+    const left = lane.scrollLeft;
+    // Chromium RTL often uses negative scrollLeft; others grow toward max.
+    const progress = left <= 0 ? Math.abs(left) / max : left / max;
+    if (progress > 0.72) this.loadSuggestedPage(false);
+  }
+
+  loadSuggestedPage(reset: boolean): void {
+    if (this.loadingMore) return;
+    if (!reset && (!this.hasMore || this.suggested.length >= MAX_SUGGESTED)) return;
+
+    const skip = reset ? 0 : this.suggested.length;
+    const take = Math.min(PAGE_SIZE, MAX_SUGGESTED - skip);
+    if (take <= 0) {
+      this.hasMore = false;
+      return;
+    }
+
+    this.loadingMore = true;
+    if (reset) this.loadingSuggested = true;
+
+    this.api.suggested(this.query.trim(), this.cuisineId || null, skip, take).subscribe({
+      next: items => {
+        const mapped = items.map(item => this.toSuggested(item));
+        this.suggested = reset ? mapped : [...this.suggested, ...mapped];
+        this.hasMore = mapped.length >= take && this.suggested.length < MAX_SUGGESTED;
+        this.loadingMore = false;
+        this.loadingSuggested = false;
+        this.queueSlideNavRefresh();
+      },
+      error: () => {
+        this.loadingMore = false;
+        this.loadingSuggested = false;
+        this.hasMore = false;
+        this.queueSlideNavRefresh();
+      }
+    });
+  }
+
+  get shownMeals(): MealCard[] {
+    const q = this.query.trim().toLowerCase();
+    if (!q) return this.meals;
+    return this.meals.filter(meal =>
+      `${meal.name || ''} ${meal.description || ''}`.toLowerCase().includes(q)
+    );
+  }
+
+  bg(meal: MealCard, index: number): string {
+    return meal.color || MEAL_TONES[index % MEAL_TONES.length].color;
+  }
+
+  fg(meal: MealCard, index: number): string {
+    return meal.textColor || MEAL_TONES[index % MEAL_TONES.length].textColor;
+  }
+
+  photo(meal: MealCard): string {
+    return mediaUrl(meal.imagePath);
+  }
+
+  icon(meal: MealCard): string {
+    return mediaUrl(meal.iconPath);
+  }
+
+  cuisineColor(chip: MealItemFilter): string {
+    return chip.color || '#FFF3E6';
+  }
+
+  cuisineText(chip: MealItemFilter): string {
+    return chip.textColor || '#2E1E12';
+  }
+
+  cuisineCountColor(chip: MealItemFilter): string {
+    return this.darken(chip.color || chip.textColor || '#F37202', 0.35);
+  }
+
+  private darken(hex: string, amount: number): string {
+    const raw = (hex || '').trim().replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(raw)) return '#C45A00';
+    const n = (i: number) => Math.max(0, Math.min(255, Math.round(parseInt(raw.slice(i, i + 2), 16) * (1 - amount))));
+    const to = (v: number) => v.toString(16).padStart(2, '0');
+    return `#${to(n(0))}${to(n(2))}${to(n(4))}`;
+  }
+
+  cuisineImage(chip: MealItemFilter): string {
+    const path = chip.iconPath || '';
+    if (path.includes('/') || path.startsWith('http')) return mediaUrl(path);
+    return '';
+  }
+
+  cuisineIcon(chip: MealItemFilter): string {
+    const path = (chip.iconPath || '').trim();
+    if (path && !path.includes('/') && !path.startsWith('http')) return path;
+    return this.iconName(chip.name);
+  }
+
+  iconName(name: string): string {
+    const value = (name || '').trim();
+    if (/نباتي|نبات|فيجان|vegan/.test(value)) return 'vegan';
+    if (/صحي|سلطة|دايت/.test(value)) return 'leaf';
+    if (/مشوي|كباب|شيش|ستيك|مشويات/.test(value)) return 'grill';
+    if (/غربي|باستا|بيتزا|برجر/.test(value)) return 'chef';
+    return 'cloche';
+  }
+
+  toggleFavorite(meal: SuggestedMeal): void {
+    const call = meal.isFavorite ? this.api.removeFavorite(meal.id) : this.api.addFavorite(meal.id);
+    call.subscribe({
+      next: () => { meal.isFavorite = !meal.isFavorite; }
+    });
+  }
+
+  step(meal: SuggestedMeal, delta: number): void {
+    const quantity = Math.max(0, meal.quantity + delta);
+    meal.quantity = quantity;
+    this.draft.setQty({
+      itemId: meal.id,
+      name: meal.title,
+      imagePath: meal.image,
+      peopleCount: null
+    }, quantity);
+  }
+
+  private syncSuggestedFromDraft(): void {
+    for (const meal of this.suggested) {
+      meal.quantity = this.draft.count(meal.id);
+    }
+  }
+
+  private toSuggested(item: ItemCard): SuggestedMeal {
+    const quantity = this.draft.count(item.id);
+    return {
+      id: item.id,
+      title: item.name || '',
+      image: mediaUrl(item.imagePath) || 'assets/home/meal_koshary.png',
+      minutes: 30,
+      persons: 4,
+      isFavorite: !!item.isFavorite,
+      quantity,
+      cuisineId: item.cuisineId
+    };
+  }
+}

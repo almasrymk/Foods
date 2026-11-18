@@ -1,0 +1,162 @@
+namespace Foods.Application.Customer.Catalog
+{
+    using System.Text;
+    using Microsoft.EntityFrameworkCore;
+    using Foods.Domain.Abstraction;
+    using Foods.Domain.Entity.MasterData.Item;
+
+    /// <summary>Advanced search options shared by home, meals and favorites.</summary>
+    public sealed record ItemSearchOptions(string? Text = null, Guid? CategoryId = null, string? Ingredient = null, Guid? CuisineId = null, Guid? GroupId = null, Guid? MealId = null)
+    {
+        public bool IsEmpty => string.IsNullOrWhiteSpace(Text) && CategoryId == null && string.IsNullOrWhiteSpace(Ingredient)
+            && CuisineId == null && GroupId == null && MealId == null;
+    }
+
+    /// <summary>In-memory item search with Arabic normalisation (أ/إ/آ=ا، ة=ه، ى=ي، no tashkeel).</summary>
+    public static class ItemSearch
+    {
+        public static string Norm(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+            var sb = new StringBuilder(value.Length);
+            foreach (var raw in value.Trim().ToLowerInvariant())
+            {
+                var c = raw;
+                if (c >= 'ً' && c <= 'ٟ') continue; // tashkeel
+                if (c == 'ـ') continue;                  // tatweel
+                c = c switch
+                {
+                    'أ' or 'إ' or 'آ' or 'ٱ' => 'ا',
+                    'ة' => 'ه',
+                    'ى' => 'ي',
+                    'ؤ' => 'و',
+                    'ئ' => 'ي',
+                    _ => c
+                };
+                sb.Append(char.IsWhiteSpace(c) ? ' ' : c);
+            }
+            return sb.ToString();
+        }
+
+        static string[] Terms(string? value) =>
+            Norm(value).Split(new[] { ' ', ',', '،', '+' }, StringSplitOptions.RemoveEmptyEntries);
+
+        public static async Task<List<Item>> Filter(
+            IFoodsDbContext db,
+            List<Item> items,
+            MenuView view,
+            ItemSearchOptions options,
+            CancellationToken cancellationToken)
+        {
+            if (items.Count == 0 || options.IsEmpty) return items;
+
+            if (options.CategoryId is Guid categoryId)
+                items = items.Where(e => e.ItemCategoryId == categoryId).ToList();
+            if (options.CuisineId is Guid kitchenId)
+                items = items.Where(e => e.CuisineId == kitchenId).ToList();
+            if (options.GroupId is Guid groupId)
+                items = items.Where(e => e.ItemGroupId == groupId).ToList();
+            if (options.MealId is Guid mealId && items.Count > 0)
+            {
+                var inMeal = (await db.ItemMeals.Where(e => e.MealId == mealId && !e.IsDeleted).Select(e => e.ItemId).ToListAsync(cancellationToken)).ToHashSet();
+                items = items.Where(e => inMeal.Contains(e.Id)).ToList();
+            }
+
+            var words = Terms(options.Text);
+            var ingredients = Terms(options.Ingredient);
+            if (items.Count == 0 || (words.Length == 0 && ingredients.Length == 0)) return items;
+
+            var ids = items.Select(e => e.Id).ToList();
+            var spoken = view.CountryId is Guid countryId
+                ? await MenuDialect.ForItems(db, countryId, ids, cancellationToken)
+                : new Dictionary<Guid, ItemCountry>();
+
+            var categoryIds = items.Select(e => e.ItemCategoryId).Distinct().ToList();
+            var categories = await db.ItemCategories.Where(e => categoryIds.Contains(e.Id))
+                .ToDictionaryAsync(e => e.Id, e => Norm(e.Name), cancellationToken);
+            var cuisineIds = items.Where(e => e.CuisineId != null).Select(e => e.CuisineId!.Value).Distinct().ToList();
+            var cuisines = await db.Cuisines.Where(e => cuisineIds.Contains(e.Id))
+                .ToDictionaryAsync(e => e.Id, e => Norm(e.Name), cancellationToken);
+            var groupIds = items.Select(e => e.ItemGroupId).Distinct().ToList();
+            var groups = await db.ItemGroups.Where(e => groupIds.Contains(e.Id))
+                .ToDictionaryAsync(e => e.Id, e => Norm(e.Name), cancellationToken);
+            var mealLinks = await (
+                from link in db.ItemMeals
+                join meal in db.Meals on link.MealId equals meal.Id
+                where ids.Contains(link.ItemId) && !link.IsDeleted && !meal.IsDeleted
+                select new { link.ItemId, meal.Name }).ToListAsync(cancellationToken);
+            var mealNames = mealLinks.GroupBy(e => e.ItemId)
+                .ToDictionary(g => g.Key, g => string.Join(" | ", g.Select(e => Norm(e.Name))));
+
+            var links = await (
+                from link in db.ItemContents
+                join content in db.Contents on link.ContentId equals content.Id
+                where ids.Contains(link.ItemId) && !link.IsDeleted && !content.IsDeleted
+                select new { link.ItemId, content.Name }).ToListAsync(cancellationToken);
+            var contentNames = links
+                .GroupBy(e => e.ItemId)
+                .ToDictionary(g => g.Key, g => g.Select(e => Norm(e.Name)).Where(e => e.Length > 0).ToList());
+
+            return items.Where(item =>
+            {
+                contentNames.TryGetValue(item.Id, out var names);
+                names ??= new List<string>();
+
+                if (ingredients.Length > 0 && !ingredients.All(term => names.Any(n => n.Contains(term))))
+                    return false;
+                if (words.Length == 0) return true;
+
+                spoken.TryGetValue(item.Id, out var local);
+                var hay = string.Join(" | ", new[]
+                {
+                    Norm(item.Name), Norm(item.Summary), Norm(item.Description),
+                    Norm(local?.Name), Norm(local?.Summary), Norm(local?.Description),
+                    categories.GetValueOrDefault(item.ItemCategoryId) ?? "",
+                    groups.GetValueOrDefault(item.ItemGroupId) ?? "",
+                    mealNames.GetValueOrDefault(item.Id) ?? "",
+                    item.CuisineId is Guid c ? cuisines.GetValueOrDefault(c) ?? "" : "",
+                    string.Join(" | ", names)
+                });
+                return words.All(term => hay.Contains(term));
+            }).ToList();
+        }
+    }
+
+    public sealed record GetItemCategoriesQuery() : Foods.Application.Abstraction.Query.IQuery<List<MealItemFilter>>;
+
+    public sealed class GetItemCategoriesQueryHandler(IFoodsDbContext db) : Foods.Application.Abstraction.Query.IQueryHandler<GetItemCategoriesQuery, List<MealItemFilter>>
+    {
+        public async Task<Foods.Domain.Shared.Result<List<MealItemFilter>>> Handle(GetItemCategoriesQuery request, CancellationToken cancellationToken)
+        {
+            var used = await db.Items.Where(e => !e.IsDeleted)
+                .GroupBy(e => e.ItemCategoryId)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(e => e.Key, e => e.Count, cancellationToken);
+            var list = await db.ItemCategories.Where(e => !e.IsDeleted).OrderBy(e => e.Name).ToListAsync(cancellationToken);
+            var result = list
+                .Where(e => used.ContainsKey(e.Id))
+                .Select(e => new MealItemFilter(e.Id, e.Name ?? "", used[e.Id], e.IconPath, e.Color, e.TextColor))
+                .ToList();
+            return new Foods.Domain.Shared.Result<List<MealItemFilter>>(System.Net.HttpStatusCode.OK, result, null);
+        }
+    }
+
+    public sealed record GetItemGroupsQuery() : Foods.Application.Abstraction.Query.IQuery<List<MealItemFilter>>;
+
+    public sealed class GetItemGroupsQueryHandler(IFoodsDbContext db) : Foods.Application.Abstraction.Query.IQueryHandler<GetItemGroupsQuery, List<MealItemFilter>>
+    {
+        public async Task<Foods.Domain.Shared.Result<List<MealItemFilter>>> Handle(GetItemGroupsQuery request, CancellationToken cancellationToken)
+        {
+            var used = await db.Items.Where(e => !e.IsDeleted)
+                .GroupBy(e => e.ItemGroupId)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(e => e.Key, e => e.Count, cancellationToken);
+            var list = await db.ItemGroups.Where(e => !e.IsDeleted).OrderBy(e => e.Name).ToListAsync(cancellationToken);
+            var result = list
+                .Where(e => used.ContainsKey(e.Id))
+                .Select(e => new MealItemFilter(e.Id, e.Name ?? "", used[e.Id], e.IconPath, e.Color, e.TextColor))
+                .ToList();
+            return new Foods.Domain.Shared.Result<List<MealItemFilter>>(System.Net.HttpStatusCode.OK, result, null);
+        }
+    }
+}

@@ -1,0 +1,58 @@
+namespace Foods.Application.Customer.Ordering
+{
+    public sealed record ItemSelection(Guid ItemId, decimal RepeatCount, int? PeopleCount);
+
+    public sealed record ShoppingLineResult(
+        Guid ContentId,
+        string? Name,
+        string? ImagePath,
+        Guid? PurchasePlaceId,
+        string? PurchasePlaceName,
+        Guid UnitId,
+        string? UnitName,
+        decimal Quantity,
+        int PurchaseMode = 0,
+        string? PackageName = null,
+        decimal PurchaseStep = 0,
+        decimal PurchaseIncrement = 0,
+        List<string>? Images = null);
+
+    /// <summary>
+    /// "أقل وحدة شراء": rounds a needed quantity up to what can really be bought.
+    /// 1 package: whole packages (1.4 L of oil -> 2 bottles of 1 L).
+    /// 2 kilo fractions: steps of 1/8 kg (10 g pepper -> 125 g = 1/8 kg).
+    /// 3 money: the least money amount (e.g. 20 EGP of basil); the grams are not used.
+    /// 4 money under 1/8 kg: below 1/8 kg the real grams are kept (the client shows a money amount),
+    ///   from 1/8 kg on it rounds up to 1/8 kg steps.
+    /// </summary>
+    public static class PurchaseRules
+    {
+        public const int Normal = 0, Package = 1, KiloFraction = 2, Money = 3, MoneyThenKilo = 4;
+
+        public static decimal Step(int mode, decimal step) => mode switch
+        {
+            Package => step > 0 ? step : 1,
+            KiloFraction => step > 0 ? step : 125,
+            Money => step > 0 ? step : 10,
+            MoneyThenKilo => step > 0 ? step : 125,
+            _ => 0
+        };
+
+        public static decimal Round(int mode, decimal step, decimal needed)
+        {
+            if (mode == MoneyThenKilo)
+            {
+                var kiloUnit = step > 0 ? step : 125;
+                if (needed <= 0) return 0;
+                if (needed < kiloUnit) return needed;
+                return Math.Ceiling(needed / kiloUnit) * kiloUnit;
+            }
+            if (mode == Normal || needed <= 0) return needed;
+            var unit = Step(mode, step);
+            if (mode == Money) return unit;
+            return Math.Ceiling(needed / unit) * unit;
+        }
+    }
+
+    public sealed record ShoppingLineInput(Guid ContentId, Guid UnitId, decimal Quantity);
+}

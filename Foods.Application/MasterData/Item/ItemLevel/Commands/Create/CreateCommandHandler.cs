@@ -16,7 +16,7 @@
             {
                 var ob = new ItemLevel
                 {
-                    Id = new Guid(),
+                    Id = Guid.NewGuid(),
                     ItemId = request.ItemId,
                     LevelId = request.LevelId,
                     IsDeleted = false,

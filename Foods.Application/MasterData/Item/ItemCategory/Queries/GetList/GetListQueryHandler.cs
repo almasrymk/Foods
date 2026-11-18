@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Item.ItemCategory.Queries.GetList
+namespace Foods.Application.MasterData.Item.ItemCategory.Queries.GetList
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -6,19 +6,19 @@
     using Foods.Domain.Abstraction;
     using System.Collections.Generic;
     using Foods.Application.Abstraction.Query;
-    using Foods.Domain.Entity.MasterData.Content;
+    using Foods.Domain.Entity.MasterData.Item;
 
-    public class GetListQueryHandler(IRepository<Content> _Repository) : IQueryListHandler<GetListQuery, List<GetListQueryResponse>>
-    { 
+    public class GetListQueryHandler(IRepository<ItemCategory> _Repository) : IQueryListHandler<GetListQuery, List<GetListQueryResponse>>
+    {
         public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
         {
             var list = await _Repository.GetListByFilterAsync();
 
             if (list == null)
-                list = new List<Content>();
+                list = new List<ItemCategory>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(e.Id,e.Name!)).ToList()
+                list.OrderBy(e => e.Sort).ThenBy(e => e.Name).Select(e => new GetListQueryResponse(e.Id, e.Name!, e.IconPath, e.Color, e.TextColor, e.Sort)).ToList()
                 , null);
         }
     }

@@ -1,0 +1,99 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ApiService } from '../core/api.service';
+import { NamedRow } from '../core/cms.service';
+import { FamilyMember, FamilyMemberInput } from '../core/models';
+import { Select2Component } from '../core/select2.component';
+
+@Component({
+  selector: 'app-family',
+  imports: [CommonModule, FormsModule, Select2Component],
+  template: `
+    <h1>الأسرة</h1>
+    <label>بلدك
+      <app-select2 name="country" [(ngModel)]="countryId" [options]="countryOptions" placeholder="اختار البلد" [required]="true"></app-select2>
+    </label>
+    <p class="muted" *ngIf="dialect">الأكلات هتظهر بلهجة {{ dialect }}.</p>
+    <p>الحساب يضرب حصة الفرد في معامل العمر لكل فرد.</p>
+    <div class="row" *ngFor="let member of members; let i = index">
+      <input [(ngModel)]="member.name" [name]="'n' + i" placeholder="الاسم">
+      <input [(ngModel)]="member.age" [name]="'a' + i" type="number" min="0" max="120" aria-label="العمر">
+      <label>تاريخ الميلاد
+        <input [(ngModel)]="member.birthDate" (ngModelChange)="syncAge(member)" [name]="'b' + i" type="date" [max]="today">
+      </label>
+      <button type="button" (click)="members.splice(i, 1)">حذف</button>
+    </div>
+    <button type="button" (click)="members.push({ name: '', age: 30, birthDate: null })">إضافة فرد</button>
+    <button type="button" (click)="save()">حفظ</button>
+    <p class="error" *ngIf="error">{{ error }}</p>
+    <p *ngIf="saved">تم الحفظ</p>
+  `
+})
+export class FamilyComponent implements OnInit {
+  members: FamilyMemberInput[] = [];
+  countries: { id: string; name?: string | null; dialect?: string | null }[] = [];
+  countryId = '';
+  error = '';
+  saved = false;
+  readonly today = new Date().toISOString().slice(0, 10);
+
+  constructor(private api: ApiService) {}
+
+  /** A birth date (yyyy-MM-dd) also fills in the age used for portions. */
+  syncAge(member: FamilyMemberInput): void {
+    if (!member.birthDate) return;
+    const b = new Date(member.birthDate);
+    if (isNaN(b.getTime())) return;
+    const now = new Date();
+    let age = now.getFullYear() - b.getFullYear();
+    if (now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age--;
+    member.age = Math.max(0, Math.min(120, age));
+  }
+
+  private toInput(member: FamilyMember): FamilyMemberInput {
+    return { name: member.name || '', age: member.age, birthDate: member.birthDate ? member.birthDate.slice(0, 10) : null };
+  }
+
+  get countryOptions(): NamedRow[] {
+    return this.countries.map(country => ({
+      id: country.id,
+      name: country.dialect ? `${country.name} · ${country.dialect}` : country.name
+    }));
+  }
+
+  get dialect(): string {
+    return this.countries.find(country => country.id === this.countryId)?.dialect || '';
+  }
+
+  ngOnInit(): void {
+    this.api.countries().subscribe({
+      next: rows => this.countries = rows,
+      error: (err: Error) => this.error = err.message
+    });
+    this.api.profile().subscribe({
+      next: profile => this.countryId = profile.countryId || '',
+      error: (err: Error) => this.error = err.message
+    });
+    this.api.family().subscribe({
+      next: members => this.members = members.map(member => this.toInput(member)),
+      error: (err: Error) => this.error = err.message
+    });
+  }
+
+  save(): void {
+    this.saved = false;
+    this.error = '';
+    if (!this.countryId) { this.error = 'اختار بلدك'; return; }
+    this.api.saveCountry(this.countryId).subscribe({
+      next: () => this.api.saveFamily(this.members).subscribe({
+        next: members => {
+          this.members = members.map(member => this.toInput(member));
+          this.saved = true;
+        },
+        error: (err: Error) => this.error = err.message
+      }),
+      error: (err: Error) => this.error = err.message
+    });
+  }
+}

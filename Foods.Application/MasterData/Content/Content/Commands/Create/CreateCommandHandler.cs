@@ -16,12 +16,25 @@
             {
                 var ob = new Content
                 {
-                    Id = new Guid(),
+                    Id = Guid.NewGuid(),
                     Name = request.Name,
                     ContentCategoryId = request.ContentCategoryId,
                     ContentGroupId = request.ContentGroupId,
                     MiniQuantity = request.MiniQuantity,
                     UnitId = request.UnitId,
+                    ImagePath = request.ImagePath,
+                    PurchasePlaceId = request.PurchasePlaceId,
+                    PurchaseMode = request.PurchaseMode,
+                    PackageName = request.PackageName,
+                    PurchaseStep = request.PurchaseStep,
+                    PurchaseIncrement = request.PurchaseIncrement,
+                    PurchaseUnitPrice = request.PurchaseUnitPrice,
+                    PurchaseMinAmount = request.PurchaseMinAmount,
+                    Price = request.Price < 0 ? 0 : request.Price,
+                    PriceQuantity = request.PriceQuantity > 0 ? request.PriceQuantity : 1,
+                    PriceUnitId = request.PriceUnitId,
+                    CuisineId = request.CuisineId,
+                    Sort = request.Sort,
                     IsDeleted = false,
                     Status = 0                    
                 };

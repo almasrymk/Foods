@@ -4,5 +4,5 @@
 
     public sealed record GetListQuery() : IQuery<List<GetListQueryResponse>>;
 
-    public sealed record GetListQueryResponse(Guid Id , string Name);
+    public sealed record GetListQueryResponse(Guid Id , string Name, string? ImagePath, Guid ItemCategoryId, Guid? CuisineId, Guid ItemGroupId, string? Summary, bool ShowToCustomer = true, int Sort = 0, List<Guid>? CategoryIds = null);
 }

@@ -1,0 +1,20 @@
+namespace Foods.Application.MasterData.Cuisine.Queries.GetList
+{
+    using Foods.Domain.Shared;
+    using Foods.Domain.Abstraction;
+    using Foods.Application.Abstraction.Query;
+    using Foods.Domain.Entity.MasterData;
+
+    public class GetListQueryHandler(IRepository<Cuisine> _Repository) : IQueryListHandler<GetListQuery, List<GetListQueryResponse>>
+    {
+        public async Task<Result<List<GetListQueryResponse>>> Handle(GetListQuery request, CancellationToken cancellationToken)
+        {
+            var list = await _Repository.GetListByFilterAsync() ?? new List<Cuisine>();
+            return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
+                list.OrderBy(e => e.Sort).ThenBy(e => e.Name)
+                    .Select(e => new GetListQueryResponse(e.Id, e.Name!, e.IconPath, e.Color, e.TextColor, e.Sort))
+                    .ToList(),
+                null);
+        }
+    }
+}

@@ -21,13 +21,26 @@
                 list = new List<Content>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e => new GetListQueryResponse(
+                list.OrderBy(e => e.Sort).ThenBy(e => e.Name).Select(e => new GetListQueryResponse(
                     e.Id,
                     e.Name!,
                     e.ContentCategoryId,
                     e.ContentGroupId,
                     e.UnitId,
-                    e.MiniQuantity
+                    e.MiniQuantity,
+                    e.ImagePath,
+                    e.PurchasePlaceId,
+                    e.PurchaseMode,
+                    e.PackageName,
+                    e.PurchaseStep,
+                    e.PurchaseIncrement,
+                    e.PurchaseUnitPrice,
+                    e.PurchaseMinAmount,
+                    e.Price,
+                    e.PriceQuantity,
+                    e.PriceUnitId,
+                    e.CuisineId,
+                    e.Sort
                     )).ToList(), null);
         }
     }

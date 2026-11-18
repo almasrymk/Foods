@@ -1,4 +1,4 @@
-﻿namespace Foods.API.Controllers.MasterData.Content
+namespace Foods.API.Controllers.MasterData.Content
 {
     using MediatR;
     using System.Net;
@@ -13,7 +13,7 @@
 
     [Authorize]
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("[controller]")]
     public class ContentTradeMarkController(ISender sender) : ControllerBase
     {
         [HttpGet("GetById")]

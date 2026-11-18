@@ -1,0 +1,441 @@
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { ApiService } from '../../../core/api.service';
+import { DraftService } from '../../../core/draft.service';
+import { mediaUrl } from '../../../core/environment';
+import { purchaseQtyText, purchaseUnitText, stepQuantity } from '../../../core/purchase';
+import { SelectedItem, ShoppingLine } from '../../../core/models';
+import { FaScreenHeaderComponent } from '../shared/screen-header.component';
+import { FaTabBarComponent } from '../shared/tab-bar.component';
+import { FaIconComponent } from '../shared/icon.component';
+import { FaPhotoSliderComponent } from '../shared/photo-slider.component';
+
+interface IngRow extends ShoppingLine {
+  pull: '' | 'plus' | 'minus';
+  dragging: boolean;
+  dragX: number;
+}
+
+/** طلباتي: ingredients with the same qty stepper animation as meal rows. */
+@Component({
+  selector: 'app-ingredients-screen',
+  imports: [FaScreenHeaderComponent, FaTabBarComponent, FaIconComponent, FaPhotoSliderComponent],
+  template: `
+    <div class="fa-screen ig" dir="rtl" style="padding-bottom: calc(335 * var(--s))">
+      <fa-screen-header title="طلباتي" art="assets/screens/art/ingredients.svg" titleIcon="basket" subtitle="المكونات المطلوبة للأكلات التي اخترتها" [height]="220" [titleY]="168" [backY]="125" />
+
+      @if (saveError) {
+        <div class="empty err">{{ saveError }}</div>
+      }
+      @if (!hasMeals) {
+        <div class="empty">لا توجد أكلات مختارة بعد. اختر من الأكلات أو المفضلة.</div>
+      } @else if (loading) {
+        <div class="empty">جاري حساب المكونات...</div>
+      } @else if (!lines.length) {
+        <div class="empty">لا توجد مكونات محسوبة لهذه الأكلات.</div>
+      } @else {
+        <h2 class="sec">المكونات</h2>
+        <div class="list">
+          @for (item of lines; track item.contentId + ':' + item.unitId) {
+            <article class="ig-ing" [class.off]="item.quantity <= 0">
+              @if ((item.images?.length || 0) > 1) {
+                <fa-photo-slider class="ig-pic" [images]="item.images" [alt]="item.name || ''" [fallback]="imageOf(item)" [eager]="true" />
+              } @else {
+                <img class="ig-pic" [src]="imageOf(item)" [alt]="item.name || ''">
+              }
+              <div class="ig-body">
+                <h3 class="name">{{ item.name }}</h3>
+                <p class="desc">{{ item.purchasePlaceName || 'مكون' }}</p>
+                <span class="shop"><fa-icon name="cart" [weight]="2.2" />{{ item.purchasePlaceName || 'من البقالة' }}</span>
+              </div>
+              <i class="vl" aria-hidden="true"></i>
+              <span class="unit">{{ unitText(item) }}</span>
+              <div class="fa-stepper stp">
+                <button type="button" (click)="stepLine(item, -1)" aria-label="نقص">−</button>
+                <b class="fa-qty"
+                   [class.on]="item.quantity > 0"
+                   [class.long]="qtyText(item).length > 2"
+                   [class.pull-plus]="item.pull === 'plus'"
+                   [class.pull-minus]="item.pull === 'minus'"
+                   [class.dragging]="item.dragging"
+                   [style.transform]="item.dragging ? ('translateX(' + item.dragX + 'px)') : null"
+                   (pointerdown)="onPointerDown(item, $event)"
+                   (pointermove)="onPointerMove(item, $event)"
+                   (pointerup)="onPointerUp(item, $event)"
+                   (pointercancel)="onPointerUp(item, $event)">{{ qtyText(item) }}</b>
+                <button type="button" (click)="stepLine(item, 1)" aria-label="زيادة">+</button>
+              </div>
+              <button type="button" class="rm-ico" (click)="softRemove(item)"
+                      [attr.aria-label]="item.quantity > 0 ? 'إزالة المكون' : 'استعادة المكون'">
+                @if (item.quantity > 0) {
+                  <fa-icon name="trash" [weight]="2" />
+                } @else {
+                  <fa-icon name="plusCircle" [weight]="2" />
+                }
+              </button>
+            </article>
+          }
+        </div>
+      }
+
+      @if (selected > 0) {
+        <div class="fa-summary bar">
+          <span class="total"><fa-icon name="layers" [weight]="2" />تم اختيار <b>{{ selected }}</b> أكلات</span>
+          <i class="sep"></i>
+          <button type="button" class="fa-cta buy" (click)="saveOrder()" [disabled]="saving">
+            {{ saving ? 'جاري الحفظ...' : 'حفظ الطلب' }}
+            <fa-icon name="basket" [weight]="2" />
+          </button>
+        </div>
+      }
+      <fa-tab-bar />
+    </div>
+  `,
+  styles: [`
+    .empty {
+      text-align: center; padding: calc(48 * var(--s)) calc(28 * var(--s));
+      color: #8A6A4A; font-size: calc(28 * var(--s)); font-weight: 700;
+    }
+    .empty.err { color: #C0392B; padding-bottom: calc(8 * var(--s)); }
+    .sec {
+      margin: calc(24 * var(--s)) calc(28 * var(--s)) calc(16 * var(--s));
+      font-size: calc(32 * var(--s)); font-weight: 800; color: #2E1E12;
+    }
+    .list {
+      display: flex; flex-direction: column; gap: calc(12 * var(--s));
+      margin: 0 calc(22 * var(--s));
+    }
+    .ig-ing {
+      display: grid;
+      grid-template-columns: calc(150 * var(--s)) minmax(0, 1fr) auto auto calc(168 * var(--s)) calc(48 * var(--s));
+      align-items: center;
+      gap: calc(12 * var(--s));
+      min-height: calc(130 * var(--s));
+      padding: calc(12 * var(--s));
+      border-radius: calc(26 * var(--s));
+      background: #FFFCF9;
+      border: calc(1.5 * var(--s)) solid #F3E8DC;
+      box-shadow: 0 calc(5 * var(--s)) calc(16 * var(--s)) rgba(120, 72, 30, .08);
+      transition: opacity .18s ease, background-color .18s ease, border-color .18s ease, filter .18s ease;
+    }
+    .ig-ing.off {
+      opacity: .55;
+      background: #F5F0EA;
+      border-color: #E0D5C8;
+      border-style: dashed;
+      filter: grayscale(.35);
+    }
+    .ig-ing.off .name,
+    .ig-ing.off .desc,
+    .ig-ing.off .unit { color: #8A7B6E; }
+    .ig-ing.off .shop {
+      background: #EDE6DC;
+      color: #9A7B62;
+    }
+    .ig-pic {
+      width: calc(150 * var(--s)); height: calc(108 * var(--s));
+      border-radius: calc(18 * var(--s)); object-fit: cover; background: #F7EFE4;
+    }
+    .ig-ing.off .ig-pic { opacity: .7; }
+    .ig-body { min-width: 0; display: flex; flex-direction: column; gap: calc(6 * var(--s)); }
+    .name {
+      margin: 0; font-size: calc(30 * var(--s)); font-weight: 800; color: #2E1E12;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .desc {
+      margin: 0; font-size: calc(22 * var(--s)); font-weight: 500; color: #5E5148;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .shop {
+      align-self: start; height: calc(38 * var(--s)); padding: 0 calc(14 * var(--s));
+      display: inline-flex; align-items: center; gap: calc(8 * var(--s));
+      border-radius: calc(20 * var(--s));
+      background: linear-gradient(90deg, #FFF3E2, #FDE7CC); color: #F06A02;
+      font-size: calc(20 * var(--s)); font-weight: 800; white-space: nowrap;
+    }
+    .shop fa-icon { font-size: calc(26 * var(--s)); }
+    .vl {
+      width: calc(2 * var(--s)); height: calc(64 * var(--s)); background: #D8CBBE; flex: none;
+    }
+    .ig-ing.off .vl { background: #D0C6BA; }
+    .unit {
+      width: calc(78 * var(--s)); height: calc(48 * var(--s));
+      display: grid; place-items: center; border-radius: calc(24 * var(--s));
+      background: #FBF1E4; font-size: calc(22 * var(--s)); font-weight: 700; color: #2E1E12;
+    }
+    .stp {
+      width: calc(168 * var(--s)); height: calc(54 * var(--s));
+      padding: 0 calc(10 * var(--s)); flex: none; justify-self: stretch;
+    }
+    /* The value bubble never wraps: it grows into a pill and long values use a smaller font. */
+    .stp b.fa-qty { white-space: nowrap; width: auto; padding: 0 calc(10 * var(--s)); direction: ltr; unicode-bidi: isolate; }
+    .stp b.fa-qty.long { font-size: calc(24 * var(--s)); }
+    .ig-ing.off .fa-stepper { background: #EFE8E0; box-shadow: inset 0 0 0 1px #E0D6CA; }
+    .rm-ico {
+      width: calc(48 * var(--s)); height: calc(48 * var(--s)); border-radius: 50% !important;
+      background: #FDE8E8 !important; color: #C0392B !important;
+      font-size: calc(26 * var(--s)); flex: none;
+      display: grid; place-items: center; padding: 0; border: 0; cursor: pointer;
+    }
+    .rm-ico fa-icon, .rm-ico svg { width: 1em; height: 1em; display: block; }
+    .ig-ing.off .rm-ico {
+      background: #E4F0D2 !important; color: #2F7D1E !important;
+    }
+    .bar {
+      bottom: calc(178 * var(--s) + env(safe-area-inset-bottom));
+      height: calc(95 * var(--s)); padding: 0 calc(25 * var(--s)) 0 calc(20 * var(--s));
+    }
+    .total {
+      display: flex; align-items: center; gap: calc(12 * var(--s));
+      height: calc(56 * var(--s)); padding: 0 calc(22 * var(--s));
+      border-radius: calc(28 * var(--s)); background: #EAF4D9; color: #2F7D1E;
+      font-size: calc(28 * var(--s)); font-weight: 800; white-space: nowrap;
+    }
+    .total b { font-size: calc(36 * var(--s)); }
+    .total fa-icon { font-size: calc(46 * var(--s)); }
+    .sep { margin-right: auto; width: calc(2 * var(--s)); height: calc(56 * var(--s)); background: #C9C2BA; flex: none; }
+    .buy { width: calc(378 * var(--s)); height: calc(78 * var(--s)); margin-right: calc(38 * var(--s)); flex: none; }
+    .buy fa-icon { font-size: calc(46 * var(--s)); }
+
+    @media (max-width: 520px) {
+      .ig-ing {
+        grid-template-columns: calc(110 * var(--s)) minmax(0, 1fr) calc(48 * var(--s));
+        grid-template-areas:
+          "pic body rm"
+          "pic unit rm"
+          "stp stp stp";
+      }
+      .ig-pic { grid-area: pic; width: calc(110 * var(--s)); height: calc(96 * var(--s)); }
+      .ig-body { grid-area: body; }
+      .vl { display: none; }
+      .unit { grid-area: unit; justify-self: start; }
+      .stp { grid-area: stp; width: 100%; }
+      .rm-ico { grid-area: rm; }
+    }
+  `]
+})
+export class IngredientsScreenComponent implements OnInit, OnDestroy {
+  lines: IngRow[] = [];
+  selected = 0;
+  hasMeals = false;
+  loading = false;
+  saving = false;
+  saveError = '';
+  private draftSub?: Subscription;
+  private calcTimer = 0;
+  private lastMealsKey = '';
+  private pullTimers = new Map<string, number>();
+  private drag?: { key: string; pointerId: number; startX: number; maxDrag: number; threshold: number };
+
+  constructor(private draft: DraftService, private api: ApiService, private router: Router) {}
+
+  ngOnInit(): void {
+    if (this.draft.isReady) this.draft.refreshFromServer();
+    else this.draft.bootFromServer();
+    this.lastMealsKey = this.mealsKey();
+    this.refresh(true);
+    this.draftSub = this.draft.selectionCount$.subscribe(() => {
+      const key = this.mealsKey();
+      if (key === this.lastMealsKey) {
+        this.selected = this.draft.selectedCount;
+        this.hasMeals = this.draft.items.length > 0;
+        return;
+      }
+      this.lastMealsKey = key;
+      this.refresh(true);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.draftSub?.unsubscribe();
+    window.clearTimeout(this.calcTimer);
+    for (const timer of this.pullTimers.values()) window.clearTimeout(timer);
+  }
+
+  stepLine(item: IngRow, delta: number): void {
+    // Steps follow the ingredient's least purchase unit (bottle, 1/8 kg, EGP...).
+    item.quantity = stepQuantity(item, delta);
+    this.bump(item, delta > 0 ? 'plus' : 'minus');
+    this.persistLines();
+  }
+
+  softRemove(item: IngRow): void {
+    if (item.quantity > 0) {
+      item.quantity = 0;
+      this.persistLines();
+      return;
+    }
+    item.quantity = stepQuantity({ ...item, quantity: 0 }, 1);
+    this.persistLines();
+  }
+
+  qtyText(item: ShoppingLine): string {
+    return purchaseQtyText(item);
+  }
+
+  unitText(item: ShoppingLine): string {
+    return purchaseUnitText(item);
+  }
+
+  displayQty(value: number): string {
+    if (Number.isInteger(value)) return String(value);
+    return String(Math.round(value * 100) / 100);
+  }
+
+  imageOf(item: ShoppingLine): string {
+    return mediaUrl(item.imagePath) || 'assets/screens/ingredients/onion.png';
+  }
+
+  saveOrder(): void {
+    if (this.saving || this.selected <= 0) return;
+    this.persistLines();
+    this.saving = true;
+    this.saveError = '';
+    this.draft.confirmOrder().subscribe({
+      next: id => {
+        this.saving = false;
+        if (!id) {
+          this.saveError = 'تم الحفظ لكن لم يتم فتح طلب الشراء';
+          return;
+        }
+        this.router.navigateByUrl(`/orders/${id}`);
+      },
+      error: (err: Error) => {
+        this.saving = false;
+        this.saveError = err?.message || 'تعذر حفظ الطلب';
+      }
+    });
+  }
+
+  onPointerDown(item: IngRow, event: PointerEvent): void {
+    const target = event.currentTarget as HTMLElement;
+    const panel = target.closest('.fa-stepper') as HTMLElement | null;
+    const room = panel
+      ? Math.max(24, (panel.clientWidth - target.clientWidth) / 2)
+      : 40;
+    this.drag = {
+      key: this.rowKey(item),
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      maxDrag: room,
+      threshold: room * 0.55
+    };
+    item.dragging = true;
+    item.dragX = 0;
+    item.pull = '';
+    target.setPointerCapture(event.pointerId);
+  }
+
+  onPointerMove(item: IngRow, event: PointerEvent): void {
+    if (!this.drag || this.drag.key !== this.rowKey(item) || event.pointerId !== this.drag.pointerId) return;
+    const delta = event.clientX - this.drag.startX;
+    item.dragX = Math.max(-this.drag.maxDrag, Math.min(this.drag.maxDrag, delta));
+  }
+
+  onPointerUp(item: IngRow, event: PointerEvent): void {
+    if (!this.drag || this.drag.key !== this.rowKey(item) || event.pointerId !== this.drag.pointerId) return;
+    const dx = item.dragX;
+    const threshold = this.drag.threshold;
+    item.dragging = false;
+    item.dragX = 0;
+    this.drag = undefined;
+    if (dx >= threshold) this.stepLine(item, 1);
+    else if (dx <= -threshold) this.stepLine(item, -1);
+  }
+
+  private bump(item: IngRow, kind: 'plus' | 'minus'): void {
+    const key = this.rowKey(item);
+    const prev = this.pullTimers.get(key);
+    if (prev) window.clearTimeout(prev);
+    item.pull = kind;
+    this.pullTimers.set(key, window.setTimeout(() => {
+      item.pull = '';
+      this.pullTimers.delete(key);
+    }, 220));
+  }
+
+  private persistLines(): void {
+    // Soft-removed (qty 0) stay visible, but only positive qty is saved.
+    const active = this.lines
+      .filter(line => line.quantity > 0)
+      .map(({ pull, dragging, dragX, ...line }) => line);
+    this.draft.setLines(active, true);
+  }
+
+  private mealsKey(): string {
+    return this.draft.items
+      .map(item => `${item.itemId}:${item.repeatCount}`)
+      .sort()
+      .join('|');
+  }
+
+  private refresh(recalculate: boolean): void {
+    this.selected = this.draft.selectedCount;
+    this.hasMeals = this.draft.items.length > 0;
+    if (recalculate) this.queueCalculate();
+  }
+
+  private queueCalculate(): void {
+    window.clearTimeout(this.calcTimer);
+    if (!this.draft.items.length) {
+      this.lines = [];
+      this.draft.setLines([], false);
+      this.loading = false;
+      return;
+    }
+    this.loading = true;
+    this.calcTimer = window.setTimeout(() => {
+      const items: SelectedItem[] = this.draft.items.map(item => ({ ...item }));
+      this.api.calculate(items).subscribe({
+        next: rows => {
+          // Saved ingredient edits (or an order merged by "إعادة الطلب") for these exact meals:
+          // show them as they are, and list the other calculated ingredients as removed (0).
+          if (this.draft.linesMatchItems) {
+            const saved = this.draft.lines.filter(line => line.quantity > 0);
+            const keys = new Set(saved.map(line => this.rowKey(line)));
+            this.lines = [
+              ...saved.map(row => this.toRow(row)),
+              ...rows.filter(row => !keys.has(this.rowKey(row))).map(row => this.toRow({ ...row, quantity: 0 }))
+            ];
+            this.loading = false;
+            return;
+          }
+          const prevZero = new Map(
+            this.lines
+              .filter(line => line.quantity <= 0)
+              .map(line => [this.rowKey(line), line])
+          );
+          this.lines = rows.map(row => this.toRow(row));
+          // Keep soft-removed rows that disappeared from a fresh calculate.
+          for (const [key, old] of prevZero) {
+            if (!this.lines.some(line => this.rowKey(line) === key)) {
+              this.lines.push({ ...old, quantity: 0, pull: '', dragging: false, dragX: 0 });
+            }
+          }
+          this.draft.setLines(
+            this.lines.filter(line => line.quantity > 0).map(({ pull, dragging, dragX, ...line }) => line),
+            false
+          );
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+        }
+      });
+    }, 250);
+  }
+
+  private toRow(row: ShoppingLine): IngRow {
+    return {
+      ...row,
+      pull: '',
+      dragging: false,
+      dragX: 0
+    };
+  }
+
+  private rowKey(item: Pick<ShoppingLine, 'contentId' | 'unitId'>): string {
+    return `${item.contentId}:${item.unitId}`;
+  }
+}

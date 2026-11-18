@@ -23,6 +23,8 @@
             ob.ContentId = request.ContentId;
             ob.UnitId = request.UnitId;
             ob.Quantity = request.Quantity;
+            ob.IsOptional = request.IsOptional;
+            ob.IsDefault = request.IsDefault;
             ob.IsDeleted = false;
             ob.Status = 0;
 

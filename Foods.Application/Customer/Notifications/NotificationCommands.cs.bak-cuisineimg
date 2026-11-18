@@ -1,0 +1,345 @@
+namespace Foods.Application.Customer.Notifications
+{
+    using System.Net;
+    using Microsoft.EntityFrameworkCore;
+    using Foods.Application.Abstraction.Command;
+    using Foods.Application.Abstraction.Query;
+    using Foods.Application.Abstraction.Security;
+    using Foods.Domain.Abstraction;
+    using Foods.Domain.Entity.Security;
+    using Foods.Domain.Shared;
+
+    public static class NotificationTypes
+    {
+        public const string LoginReminder = "login_reminder";
+        public const string WelcomeBack = "welcome_back";
+        public const string Birthday = "birthday";
+        public const string OrderReminder = "order_reminder";
+        public const string WeeklyPlan = "weekly_plan";
+    }
+
+    // ------------------------------------------------------------------ settings
+
+    public sealed record UserSettingsDto(
+        string Language,
+        bool NotifyLogin,
+        bool NotifyWelcome,
+        bool NotifyBirthday,
+        bool NotifyOrders,
+        bool NotifyPlanning);
+
+    public sealed record GetSettingsQuery() : IQuery<UserSettingsDto>;
+    public sealed record SaveSettingsCommand(
+        string? Language,
+        bool NotifyLogin,
+        bool NotifyWelcome,
+        bool NotifyBirthday,
+        bool NotifyOrders,
+        bool NotifyPlanning) : ICommand<UserSettingsDto>;
+
+    public static class UserSettings
+    {
+        public static UserSettingsDto ToDto(UserSetting? s) => s == null
+            ? new UserSettingsDto("ar", true, true, true, true, true)
+            : new UserSettingsDto(s.Language, s.NotifyLogin, s.NotifyWelcome, s.NotifyBirthday, s.NotifyOrders, s.NotifyPlanning);
+
+        public static Task<UserSetting?> FindAsync(IFoodsDbContext db, Guid userId, CancellationToken ct) =>
+            db.Set<UserSetting>().FirstOrDefaultAsync(e => e.UserId == userId && !e.IsDeleted, ct);
+    }
+
+    public sealed class GetSettingsQueryHandler(IFoodsDbContext db, ICurrentUser currentUser) : IQueryHandler<GetSettingsQuery, UserSettingsDto>
+    {
+        public async Task<Result<UserSettingsDto>> Handle(GetSettingsQuery request, CancellationToken cancellationToken)
+        {
+            var row = await UserSettings.FindAsync(db, currentUser.UserId, cancellationToken);
+            return new Result<UserSettingsDto>(HttpStatusCode.OK, UserSettings.ToDto(row), null);
+        }
+    }
+
+    public sealed class SaveSettingsCommandHandler(IFoodsDbContext db, ICurrentUser currentUser) : ICommandHandler<SaveSettingsCommand, UserSettingsDto>
+    {
+        public async Task<Result<UserSettingsDto>> Handle(SaveSettingsCommand request, CancellationToken cancellationToken)
+        {
+            var language = (request.Language ?? "ar").Trim().ToLowerInvariant();
+            if (language != "ar" && language != "en")
+                return new Result<UserSettingsDto>(HttpStatusCode.BadRequest, null, new List<string> { "اللغة غير مدعومة" });
+
+            var row = await UserSettings.FindAsync(db, currentUser.UserId, cancellationToken);
+            if (row == null)
+            {
+                row = new UserSetting { Id = Guid.NewGuid(), UserId = currentUser.UserId };
+                db.Set<UserSetting>().Add(row);
+            }
+
+            row.Language = language;
+            row.NotifyLogin = request.NotifyLogin;
+            row.NotifyWelcome = request.NotifyWelcome;
+            row.NotifyBirthday = request.NotifyBirthday;
+            row.NotifyOrders = request.NotifyOrders;
+            row.NotifyPlanning = request.NotifyPlanning;
+            await db.SaveChangesAsync(cancellationToken);
+            return new Result<UserSettingsDto>(HttpStatusCode.OK, UserSettings.ToDto(row), null);
+        }
+    }
+
+    // ------------------------------------------------------------- notifications
+
+    public sealed record NotificationDto(Guid Id, string Type, string? Title, string? Body, string? Link, DateTime CreatedAt, DateTime? ReadAt);
+    public sealed record NotificationPage(List<NotificationDto> Items, int Total, int Unread);
+
+    public sealed record GetNotificationsQuery(int Skip = 0, int Take = 20, bool? Unread = null) : IQuery<NotificationPage>;
+    public sealed record GetUnreadCountQuery() : IQuery<int>;
+    public sealed record MarkNotificationReadCommand(Guid Id) : ICommand<int>;
+    public sealed record MarkAllNotificationsReadCommand() : ICommand<int>;
+
+    file static class Mine
+    {
+        public static IQueryable<Notification> For(IFoodsDbContext db, Guid userId) =>
+            db.Set<Notification>().Where(e => e.UserId == userId && !e.IsDeleted);
+    }
+
+    public sealed class GetNotificationsQueryHandler(IFoodsDbContext db, ICurrentUser currentUser) : IQueryHandler<GetNotificationsQuery, NotificationPage>
+    {
+        public async Task<Result<NotificationPage>> Handle(GetNotificationsQuery request, CancellationToken cancellationToken)
+        {
+            var skip = Math.Max(0, request.Skip);
+            var take = Math.Clamp(request.Take <= 0 ? 20 : request.Take, 1, 50);
+            var mine = Mine.For(db, currentUser.UserId);
+            var query = request.Unread switch
+            {
+                true => mine.Where(e => e.ReadAt == null),
+                false => mine.Where(e => e.ReadAt != null),
+                _ => mine
+            };
+
+            var total = await query.CountAsync(cancellationToken);
+            var unread = await mine.CountAsync(e => e.ReadAt == null, cancellationToken);
+            var items = await query
+                .OrderByDescending(e => e.CreatedAt)
+                .ThenBy(e => e.Id)
+                .Skip(skip)
+                .Take(take)
+                .Select(e => new NotificationDto(e.Id, e.Type, e.Title, e.Body, e.Link, e.CreatedAt, e.ReadAt))
+                .ToListAsync(cancellationToken);
+
+            return new Result<NotificationPage>(HttpStatusCode.OK, new NotificationPage(items, total, unread), null);
+        }
+    }
+
+    public sealed class GetUnreadCountQueryHandler(IFoodsDbContext db, ICurrentUser currentUser) : IQueryHandler<GetUnreadCountQuery, int>
+    {
+        public async Task<Result<int>> Handle(GetUnreadCountQuery request, CancellationToken cancellationToken)
+        {
+            var count = await Mine.For(db, currentUser.UserId).CountAsync(e => e.ReadAt == null, cancellationToken);
+            return new Result<int>(HttpStatusCode.OK, count, null);
+        }
+    }
+
+    public sealed class MarkNotificationReadCommandHandler(IFoodsDbContext db, ICurrentUser currentUser) : ICommandHandler<MarkNotificationReadCommand, int>
+    {
+        public async Task<Result<int>> Handle(MarkNotificationReadCommand request, CancellationToken cancellationToken)
+        {
+            // Scoped to the current user: another user's id is simply "not found".
+            var row = await Mine.For(db, currentUser.UserId).FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken);
+            if (row == null)
+                return new Result<int>(HttpStatusCode.NotFound, 0, new List<string> { "الإشعار غير موجود" });
+
+            if (row.ReadAt == null)
+            {
+                row.ReadAt = DateTime.UtcNow;
+                await db.SaveChangesAsync(cancellationToken);
+            }
+
+            var unread = await Mine.For(db, currentUser.UserId).CountAsync(e => e.ReadAt == null, cancellationToken);
+            return new Result<int>(HttpStatusCode.OK, unread, null);
+        }
+    }
+
+    public sealed class MarkAllNotificationsReadCommandHandler(IFoodsDbContext db, ICurrentUser currentUser) : ICommandHandler<MarkAllNotificationsReadCommand, int>
+    {
+        public async Task<Result<int>> Handle(MarkAllNotificationsReadCommand request, CancellationToken cancellationToken)
+        {
+            var now = DateTime.UtcNow;
+            await Mine.For(db, currentUser.UserId)
+                .Where(e => e.ReadAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(e => e.ReadAt, now), cancellationToken);
+            return new Result<int>(HttpStatusCode.OK, 0, null);
+        }
+    }
+
+    // ----------------------------------------------------------------- generator
+
+    /// <summary>
+    /// Creates the scheduled notifications (login reminder, family birthdays, order and weekly
+    /// planning reminders). Safe to run any number of times: every notification has a Key and
+    /// a (UserId, Key) pair is only ever inserted once.
+    /// </summary>
+    public sealed class NotificationGenerator(IFoodsDbContext db)
+    {
+        public static readonly TimeSpan LoginReminderAfter = TimeSpan.FromDays(3);
+        public static readonly TimeSpan WelcomeBackAfter = TimeSpan.FromDays(14);
+        public static readonly TimeSpan OrderReminderAfter = TimeSpan.FromDays(1);
+        static readonly TimeSpan OrderReminderWindow = TimeSpan.FromDays(30);
+
+        /// <summary>Local calendar used for "today" (birthdays, week keys). Egypt.</summary>
+        static DateTime LocalNow(DateTime utc)
+        {
+            try { return TimeZoneInfo.ConvertTimeFromUtc(utc, TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")); }
+            catch { return utc.AddHours(2); }
+        }
+
+        public async Task<int> RunAsync(DateTime utcNow, CancellationToken ct)
+        {
+            var customers = await db.Set<User>()
+                .Where(e => !e.IsDeleted && e.RoleId == RoleIds.Customer)
+                .Select(e => new { e.Id, e.LastLoginAt })
+                .ToListAsync(ct);
+            if (customers.Count == 0)
+                return 0;
+
+            var ids = customers.Select(e => e.Id).ToList();
+            var settings = (await db.Set<UserSetting>().Where(e => !e.IsDeleted && ids.Contains(e.UserId)).ToListAsync(ct))
+                .ToDictionary(e => e.UserId);
+            UserSettingsDto For(Guid id) => UserSettings.ToDto(settings.GetValueOrDefault(id));
+
+            var pending = new List<Notification>();
+            var local = LocalNow(utcNow);
+
+            // 1. login reminder: tracked users away for 3+ days, once per absence.
+            foreach (var user in customers)
+            {
+                if (user.LastLoginAt is not DateTime last || utcNow - last < LoginReminderAfter || !For(user.Id).NotifyLogin)
+                    continue;
+                var days = (int)(utcNow - last).TotalDays;
+                pending.Add(New(user.Id, NotificationTypes.LoginReminder, $"login:{last:yyyyMMddHHmm}",
+                    "وحشتنا!",
+                    $"بقالك {days} أيام مدخلتش. ادخل شوف أكلات النهارده وخطط لوجباتك.",
+                    "/home", utcNow));
+            }
+
+            // 3. family birthdays: the day before and on the day.
+            var members = await db.Set<FamilyMember>()
+                .Where(e => !e.IsDeleted && e.BirthDate != null && ids.Contains(e.UserId))
+                .Select(e => new { e.UserId, e.Name, e.BirthDate })
+                .ToListAsync(ct);
+            var today = local.Date;
+            foreach (var member in members)
+            {
+                if (!For(member.UserId).NotifyBirthday || string.IsNullOrWhiteSpace(member.Name))
+                    continue;
+                var name = member.Name!.Trim();
+                var birthday = BirthdayIn(member.BirthDate!.Value, today.Year);
+                if (birthday < today.AddDays(-1))
+                    birthday = BirthdayIn(member.BirthDate.Value, today.Year + 1);
+                if (birthday == today)
+                    pending.Add(New(member.UserId, NotificationTypes.Birthday, $"bday:{name}:{birthday:yyyy}:day",
+                        $"كل سنة و{name} طيب 🎂",
+                        $"النهارده عيد ميلاد {name}. احتفلوا بأكلة يحبها أو حلويات مميزة.",
+                        "/cuisines", utcNow));
+                else if (birthday == today.AddDays(1))
+                    pending.Add(New(member.UserId, NotificationTypes.Birthday, $"bday:{name}:{birthday:yyyy}:eve",
+                        $"بكرة عيد ميلاد {name}",
+                        $"جهّز من دلوقتي أكلة ولا حلويات لعيد ميلاد {name}.",
+                        "/cuisines", utcNow));
+            }
+
+            // 4a. orders created a day ago or more that were never printed or shared.
+            var from = utcNow - OrderReminderWindow;
+            var to = utcNow - OrderReminderAfter;
+            var orders = await db.Set<Foods.Domain.Entity.Request.Request>()
+                .Where(e => !e.IsDeleted && ids.Contains(e.UserId) && e.CreatedAt != null && e.CreatedAt >= from && e.CreatedAt <= to
+                            && e.PrintedAt == null && e.SharedAt == null)
+                .Select(e => new { e.Id, e.UserId, e.Name, e.Code })
+                .ToListAsync(ct);
+            foreach (var order in orders)
+            {
+                if (!For(order.UserId).NotifyOrders)
+                    continue;
+                var label = !string.IsNullOrWhiteSpace(order.Name) ? order.Name!.Trim() : order.Code ?? "طلبك";
+                pending.Add(New(order.UserId, NotificationTypes.OrderReminder, $"order:{order.Id}",
+                    "طلبك لسه مستني",
+                    $"«{label}» لسه متطبعش ولا اتبعت. اطبعه أو شاركه عشان تشتري المكونات.",
+                    $"/orders/{order.Id}", utcNow));
+            }
+
+            // 4b. weekly planning reminder, once per week (weeks start on Saturday).
+            var weekStart = today.AddDays(-(((int)today.DayOfWeek - (int)DayOfWeek.Saturday + 7) % 7));
+            foreach (var user in customers)
+            {
+                if (!For(user.Id).NotifyPlanning)
+                    continue;
+                pending.Add(New(user.Id, NotificationTypes.WeeklyPlan, $"plan:{weekStart:yyyyMMdd}",
+                    "خطط لأكل الأسبوع",
+                    "اختار وجبات الأسبوع دلوقتي ونحسبلك المكونات والكميات تلقائياً.",
+                    "/meals", utcNow));
+            }
+
+            return await InsertNewAsync(pending, ct);
+        }
+
+        /// <summary>Welcome back at login (call before LastLoginAt is updated). Returns true when one was added.</summary>
+        public async Task<bool> WelcomeBackAsync(Guid userId, string? name, DateTime? lastLoginAt, DateTime utcNow, CancellationToken ct)
+        {
+            if (lastLoginAt is not DateTime last || utcNow - last < WelcomeBackAfter)
+                return false;
+            var setting = await UserSettings.FindAsync(db, userId, ct);
+            if (!UserSettings.ToDto(setting).NotifyWelcome)
+                return false;
+            var first = string.IsNullOrWhiteSpace(name) ? "" : " يا " + name!.Trim().Split(' ')[0];
+            var days = (int)(utcNow - last).TotalDays;
+            return await InsertNewAsync(new List<Notification>
+            {
+                New(userId, NotificationTypes.WelcomeBack, $"welcome:{last:yyyyMMddHHmm}",
+                    $"أهلاً بيك تاني{first}! 👋",
+                    $"وحشتنا {days} يوم. جهزنالك أكلات جديدة، ابدأ خطة الأسبوع دلوقتي.",
+                    "/home", utcNow)
+            }, ct) > 0;
+        }
+
+        static DateTime BirthdayIn(DateTime birthDate, int year) =>
+            birthDate.Month == 2 && birthDate.Day == 29 && !DateTime.IsLeapYear(year)
+                ? new DateTime(year, 2, 28)
+                : new DateTime(year, birthDate.Month, birthDate.Day);
+
+        static Notification New(Guid userId, string type, string key, string title, string body, string link, DateTime now) => new()
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Type = type,
+            Key = key,
+            Title = title,
+            Body = body,
+            Link = link,
+            CreatedAt = now,
+            IsDeleted = false,
+            Status = 0
+        };
+
+        async Task<int> InsertNewAsync(List<Notification> pending, CancellationToken ct)
+        {
+            if (pending.Count == 0)
+                return 0;
+            var userIds = pending.Select(e => e.UserId).Distinct().ToList();
+            var keys = pending.Select(e => e.Key!).Distinct().ToList();
+            var existing = (await db.Set<Notification>()
+                    .Where(e => userIds.Contains(e.UserId) && e.Key != null && keys.Contains(e.Key))
+                    .Select(e => new { e.UserId, e.Key })
+                    .ToListAsync(ct))
+                .Select(e => (e.UserId, e.Key!))
+                .ToHashSet();
+
+            var added = 0;
+            foreach (var row in pending)
+            {
+                if (!existing.Add((row.UserId, row.Key!)))
+                    continue;
+                db.Set<Notification>().Add(row);
+                added++;
+            }
+
+            if (added > 0)
+                await db.SaveChangesAsync(ct);
+            return added;
+        }
+    }
+}

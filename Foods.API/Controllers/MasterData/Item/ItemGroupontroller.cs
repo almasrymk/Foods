@@ -13,7 +13,7 @@
 
     [Authorize]
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("[controller]")]
     public class ItemGroupController(ISender sender) : ControllerBase
     {
         [HttpGet("GetById")]

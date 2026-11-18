@@ -1,0 +1,180 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { CmsService, CountryRow, CuisineRow, NamedRow, UnitRow } from '../../core/cms.service';
+import { CmsConfirmComponent } from './cms-confirm.component';
+import { IconComponent } from '../../core/icon.component';
+import { LoadingComponent } from '../../core/loading.component';
+import { PhotoComponent } from '../../core/photo.component';
+import { FaIconComponent } from '../screens/shared/icon.component';
+import { findLookup } from './lookup-kinds';
+import { CmsPagerComponent } from './cms-pager.component';
+import { isCmsImagePath } from './cms-palette';
+
+type LookupRow = NamedRow | UnitRow | CountryRow | CuisineRow;
+
+@Component({
+  selector: 'app-cms-lookup-list',
+  imports: [CommonModule, FormsModule, RouterLink, CmsConfirmComponent, IconComponent, LoadingComponent, PhotoComponent, FaIconComponent, CmsPagerComponent],
+  template: `
+    <a class="back" routerLink="/cms/lookups">البيانات المساعدة</a>
+    <div class="list-head">
+      <h1><app-icon [name]="icon"></app-icon> {{ title }}</h1>
+      <a class="primary" routerLink="new"><app-icon name="add"></app-icon> إضافة</a>
+    </div>
+    <input class="cms-search" [(ngModel)]="text" (ngModelChange)="page = 0" name="text" placeholder="بحث بالاسم">
+    <p class="error" *ngIf="error">{{ error }}</p>
+    <app-loading *ngIf="loading"></app-loading>
+    <div class="table-scroll" *ngIf="!loading && shown().length">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th *ngIf="cuisine">الترتيب</th>
+          <th>الأيقونة</th>
+          <th>اللون</th>
+          <th>الاسم</th>
+          <th *ngIf="dialect">اللهجة</th>
+          <th *ngIf="unit">الاختصار</th>
+          <th class="actions">إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let row of pageRows()">
+        <td *ngIf="cuisine">{{ sortOf(row) }}</td>
+        <td>
+          <app-photo *ngIf="isImage(iconOf(row))" [path]="iconOf(row)" icon="category" [alt]="row.name || ''"></app-photo>
+          <span class="icon-key" *ngIf="!isImage(iconOf(row)) && iconOf(row)">
+            <fa-icon [name]="iconOf(row)" [weight]="1.8"></fa-icon>
+            {{ iconOf(row) }}
+          </span>
+          <span *ngIf="!isImage(iconOf(row)) && !iconOf(row)">—</span>
+        </td>
+        <td>
+          <span class="color-dot" *ngIf="colorOf(row)" [style.background]="colorOf(row)" [title]="colorOf(row)"></span>
+          <span *ngIf="!colorOf(row)">—</span>
+        </td>
+        <td>{{ row.name }}</td>
+        <td *ngIf="dialect">{{ speech(row) }}</td>
+        <td *ngIf="unit">{{ nick(row) }}</td>
+        <td class="actions">
+          <div class="row">
+            <a class="text-link" [routerLink]="row.id"><app-icon name="edit"></app-icon> تعديل</a>
+            <button type="button" class="ghost" (click)="pending = row"><app-icon name="delete"></app-icon> حذف</button>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    </div>
+    <app-cms-pager [total]="shown().length" [page]="page" [size]="pageSize" (pageChange)="page = $event"></app-cms-pager>
+    <p class="muted" *ngIf="!loading && !error && rows.length === 0">لا توجد بيانات.</p>
+    <p class="muted" *ngIf="!loading && !error && rows.length && !shown().length">لا توجد نتائج.</p>
+    <app-cms-confirm [name]="pending?.name || ''" (confirm)="remove()" (cancel)="pending = null"></app-cms-confirm>
+  `,
+  styles: [`
+    .color-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: inline-grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 12px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+    }
+    .icon-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #5B4636;
+      font-weight: 700;
+    }
+    .icon-key fa-icon { width: 20px; height: 20px; font-size: 20px; }
+  `]
+})
+export class CmsLookupListComponent implements OnInit {
+  title = '';
+  icon = 'lookups';
+  unit = false;
+  dialect = false;
+  cuisine = false;
+  rows: LookupRow[] = [];
+  text = '';
+  page = 0;
+  readonly pageSize = 10;
+  pending: NamedRow | null = null;
+  error = '';
+  loading = true;
+  private controller = '';
+
+  constructor(private cms: CmsService, private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    const kind = findLookup(this.route.snapshot.paramMap.get('kind') || '');
+    if (!kind) { this.error = 'القائمة غير موجودة'; return; }
+    this.title = kind.title;
+    this.icon = kind.icon;
+    this.unit = !!kind.unit;
+    this.dialect = !!kind.dialect;
+    this.cuisine = !!kind.cuisine;
+    this.controller = kind.key;
+    this.load();
+  }
+
+  nick(row: LookupRow): string {
+    return 'nickName' in row ? (row.nickName || '') : '';
+  }
+
+  speech(row: LookupRow): string {
+    return 'dialect' in row ? (row.dialect || '') : '';
+  }
+
+  sortOf(row: LookupRow): number {
+    return 'sort' in row ? (row.sort ?? 0) : 0;
+  }
+
+  iconOf(row: LookupRow): string {
+    return 'iconPath' in row ? (row.iconPath || '') : '';
+  }
+
+  colorOf(row: LookupRow): string {
+    return 'color' in row ? (row.color || '') : '';
+  }
+
+  textColorOf(row: LookupRow): string {
+    return 'textColor' in row ? (row.textColor || '') : '';
+  }
+
+  isImage = isCmsImagePath;
+
+  shown(): LookupRow[] {
+    const query = this.text.trim().toLowerCase();
+    const filtered = !query
+      ? this.rows
+      : this.rows.filter(row => `${row.name || ''} ${this.nick(row)} ${this.speech(row)}`.toLowerCase().includes(query));
+    if (!this.cuisine) return filtered;
+    return [...filtered].sort((a, b) => this.sortOf(a) - this.sortOf(b) || (a.name || '').localeCompare(b.name || '', 'ar'));
+  }
+
+  pageRows(): LookupRow[] {
+    const start = this.page * this.pageSize;
+    return this.shown().slice(start, start + this.pageSize);
+  }
+
+  load(): void {
+    this.loading = true;
+    this.cms.list<LookupRow>(this.controller).subscribe({
+      next: rows => { this.rows = rows; this.loading = false; },
+      error: (err: Error) => { this.error = err.message; this.loading = false; }
+    });
+  }
+
+  remove(): void {
+    if (!this.pending) return;
+    this.cms.remove(this.controller, this.pending.id).subscribe({
+      next: () => { this.pending = null; this.load(); },
+      error: (err: Error) => { this.pending = null; this.error = err.message; }
+    });
+  }
+}

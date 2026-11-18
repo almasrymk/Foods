@@ -16,11 +16,13 @@
             {
                 var ob = new ItemContent
                 {
-                    Id = new Guid(),
+                    Id = Guid.NewGuid(),
                     ItemId = request.ItemId,
                     ContentId = request.ContentId,
                     UnitId = request.UnitId,
                     Quantity = request.Quantity,
+                    IsOptional = request.IsOptional,
+                    IsDefault = request.IsDefault,
                     IsDeleted = false,
                     Status = 0
                 };

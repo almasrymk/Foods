@@ -1,0 +1,41 @@
+﻿namespace Foods.API.Controllers.Customer
+{
+    using MediatR;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Foods.Domain.Entity.Security;
+    using Foods.Application.Customer.Catalog;
+
+    [Authorize(Roles = $"{RoleNames.Customer},{RoleNames.Admin}")]
+    [ApiController]
+    [Route("customer/meals")]
+    public class CustomerMealController(ISender sender) : ControllerBase
+    {
+        [HttpGet]
+        public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetMealsQuery(), cancellationToken));
+        }
+
+        [HttpGet("{mealId}/filters")]
+        public async Task<IActionResult> Filters(string mealId, CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetMealItemFiltersQuery(ParseMealId(mealId)), cancellationToken));
+        }
+
+        [HttpGet("{mealId}/items")]
+        public async Task<IActionResult> Items(string mealId, string? text, Guid? cuisineId, int skip, int? take, Guid? categoryId, string? ingredient, CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetItemsQuery(ParseMealId(mealId), text, cuisineId, skip, take, categoryId, ingredient), cancellationToken));
+        }
+
+        static Guid? ParseMealId(string? mealId)
+        {
+            if (string.IsNullOrWhiteSpace(mealId) ||
+                string.Equals(mealId, "all", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(mealId, "الكل", StringComparison.OrdinalIgnoreCase))
+                return null;
+            return Guid.TryParse(mealId, out var id) ? id : null;
+        }
+    }
+}

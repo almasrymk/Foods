@@ -45,17 +45,17 @@
 
         public virtual async ValueTask<TEntity?> GetByFilterAsync(Expression<Func<TEntity, bool>> Filter)
         {
-            return await dbEntity.FirstOrDefaultAsync(Filter);
+            return await dbEntity.Where(e => !e.IsDeleted).FirstOrDefaultAsync(Filter);
         }
 
         public virtual async ValueTask<IEnumerable<TEntity>?> GetListByFilterAsync()
         {
-            return await dbEntity.AsQueryable().ToListAsync();
+            return await dbEntity.Where(e => !e.IsDeleted).ToListAsync();
         }
 
         public virtual async ValueTask<IEnumerable<TEntity>?> GetListByFilterAsync(Expression<Func<TEntity, bool>> Filter)
         {
-            return await dbEntity.Where(Filter).AsQueryable().ToListAsync();
+            return await dbEntity.Where(e => !e.IsDeleted).Where(Filter).ToListAsync();
         }
 
         public virtual async ValueTask<bool> ShiftDeleteAsync(Expression<Func<TEntity, bool>> Filter)
@@ -72,13 +72,18 @@
 
         public virtual async ValueTask<bool> UpdateAsync(TEntity Ob)
         {
-            if (await dbEntity.AnyAsync(e => e == Ob))
+            var tracked = dbEntity.Local.FirstOrDefault(e => e.Id == Ob.Id);
+            if (tracked != null)
             {
-                dbEntity.Attach(Ob);
+                dbEntity.Entry(tracked).State = EntityState.Modified;
                 return true;
             }
 
-            return false;
+            if (!await dbEntity.AnyAsync(e => e.Id == Ob.Id))
+                return false;
+
+            dbEntity.Update(Ob);
+            return true;
         }
     }
 }

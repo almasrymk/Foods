@@ -1,0 +1,57 @@
+<div class="fa-screen cu" dir="rtl">
+  <fa-top-bar />
+
+  <!-- header: same layout as "اختر نوع الوجبة" -->
+  <div class="cu-head">
+    <img class="cu-art" src="assets/screens/cuisines/hero.svg" alt="">
+    <img class="cu-fork" src="assets/screens/plan/fork.png" alt="">
+    <h1 class="cu-title">اختر المطبخ</h1>
+    <img class="cu-underline" src="assets/screens/plan/underline.png" alt="">
+    <p class="cu-sub">تصفح المطابخ واختر ما يناسبك من الأكلات</p>
+  </div>
+
+  @if (loading) {
+    <div class="cu-grid">
+      @for (s of skeletons; track s) { <div class="cu-tile cu-skel"></div> }
+    </div>
+  } @else if (!tiles.length) {
+    <p class="cu-empty">لا توجد مطابخ حالياً</p>
+  } @else {
+    <div class="cu-grid">
+      <!-- all cuisines -->
+      <button type="button" class="cu-tile all" (click)="openAll()">
+        <span class="cu-tile-ico"><fa-icon name="grid" [weight]="2" /></span>
+        <b>الكل</b>
+        <span class="cu-tile-art">
+          <span class="cu-tile-circle"><fa-icon name="cloche" [weight]="1.6" /></span>
+          <small>{{ totalCount }} أكلة</small>
+        </span>
+      </button>
+
+      @for (tile of tiles; track tile.id) {
+        <button type="button" class="cu-tile" (click)="open(tile)" [style.background]="tile.bg">
+          <span class="cu-tile-ico" [style.color]="tile.color">
+            @if (tile.iconImage) {
+              <img [src]="tile.iconImage" alt="">
+            } @else {
+              <fa-icon [name]="tile.iconKey" [weight]="1.8" />
+            }
+          </span>
+          <b [style.color]="tile.color">{{ tile.label }}</b>
+          <span class="cu-tile-art">
+            <span class="cu-tile-circle" [style.color]="tile.color">
+              @if (tile.iconImage) {
+                <img [src]="tile.iconImage" alt="">
+              } @else {
+                <fa-icon [name]="tile.iconKey" [weight]="1.5" />
+              }
+            </span>
+            <small [style.color]="tile.color">{{ tile.count }} أكلة</small>
+          </span>
+        </button>
+      }
+    </div>
+  }
+
+  <fa-tab-bar force="home" />
+</div>

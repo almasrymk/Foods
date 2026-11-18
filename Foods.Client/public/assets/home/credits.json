@@ -1,0 +1,65 @@
+{
+  "shell": "Reference screenshot is 460x1024. The home shell uses that width as CSS pixels and stays centered on wider screens.",
+  "images": [
+    {
+      "file": "bowl-hero.jpg",
+      "use": "Header grilled chicken bowl",
+      "source": "Project design asset bowl-hero.jpg",
+      "match": "Same photograph as the reference header"
+    },
+    {
+      "file": "cat-breakfast.png",
+      "use": "Breakfast card",
+      "source": "Cropped from project design screen aa57403f (meal planner)",
+      "match": "Same fried-egg-on-toast photograph as the reference"
+    },
+    {
+      "file": "cat-lunch.png",
+      "use": "Lunch card",
+      "source": "Cropped from project design screen aa57403f",
+      "match": "Same grilled chicken plate as the reference"
+    },
+    {
+      "file": "cat-dinner.png",
+      "use": "Dinner card",
+      "source": "Cropped from project design screen aa57403f",
+      "match": "Same salmon plate as the reference"
+    },
+    {
+      "file": "cat-snack.png",
+      "use": "Light snack card",
+      "source": "Cropped from project design screen aa57403f",
+      "match": "Same yogurt and berries photograph as the reference"
+    },
+    {
+      "file": "planner-scene.png",
+      "use": "Monthly planner illustration",
+      "source": "Cropped from the home reference screenshot",
+      "match": "Same calendar, checkmarks, tomato, and pepper"
+    },
+    {
+      "file": "card-koshari.png",
+      "use": "Koshari card",
+      "source": "Cropped from the home reference screenshot",
+      "match": "Same koshari photograph"
+    },
+    {
+      "file": "card-dolma.png",
+      "use": "Stuffed grape leaves card",
+      "source": "Cropped from the home reference screenshot",
+      "match": "Same grape-leaf photograph. Catalog item is محشي صغير; there is no ورق عنب record."
+    },
+    {
+      "file": "card-chicken.png",
+      "use": "Grilled chicken card",
+      "source": "Cropped from the home reference screenshot",
+      "match": "Same herb chicken photograph. Catalog item is فراخ مشوية."
+    },
+    {
+      "file": "logo.png",
+      "use": "Header logo",
+      "source": "Foods.Client/public/logo.png",
+      "match": "Original project logo, not the reference wordmark"
+    }
+  ]
+}

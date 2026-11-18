@@ -18,7 +18,9 @@
                 list = new List<Meal>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(e.Id,e.Name! , e.Description!)).ToList()
+                list.OrderBy(e => e.Sort).ThenBy(e => e.Name)
+                    .Select(e => new GetListQueryResponse(e.Id, e.Name!, e.Description!, e.ImagePath, e.IconPath, e.Color, e.TextColor, e.Sort))
+                    .ToList()
                 , null);
         }
     }

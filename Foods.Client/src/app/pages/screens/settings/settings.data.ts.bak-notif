@@ -1,0 +1,25 @@
+// Static settings content (design/mockups/settings.png). Wire to the API later.
+
+export interface FamilyCard {
+  id: string;
+  name: string;
+  image: string;
+}
+
+export const SETTINGS_PROFILE = { name: 'المدير', email: 'admin@foodapp' };
+
+export const SETTINGS_COUNTRY = { name: 'مصر', flag: 'assets/screens/settings/flag-eg.png' };
+
+export function familyCards(): FamilyCard[] {
+  return [
+    { id: 'father', name: 'الأب', image: 'assets/screens/settings/father.png' },
+    { id: 'mother', name: 'الأم', image: 'assets/screens/settings/mother.png' },
+    { id: 'child', name: 'طفل', image: 'assets/screens/settings/child.png' }
+  ];
+}
+
+export const ABOUT_ROWS = [
+  { id: 'version', icon: 'layers', label: 'الإصدار', sub: '1.0.0' },
+  { id: 'privacy', icon: 'shield', label: 'سياسة الخصوصية', sub: '' },
+  { id: 'terms', icon: 'doc', label: 'الشروط والأحكام', sub: '' }
+];

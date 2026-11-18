@@ -16,7 +16,7 @@
             {
                 var ob = new ItemMeal
                 {
-                    Id = new Guid(),
+                    Id = Guid.NewGuid(),
                     ItemId = request.ItemId,
                     MealId = request.MealId,
                     IsDeleted = false,

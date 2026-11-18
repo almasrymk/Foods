@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Content.ContentGroup.Commands.Update
+namespace Foods.Application.MasterData.Content.ContentGroup.Commands.Update
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -19,6 +19,9 @@
                     new List<string> { "Error" });
 
             ob.Name = request.Name;
+            ob.IconPath = request.IconPath;
+            ob.Color = request.Color;
+            ob.TextColor = request.TextColor;
             ob.IsDeleted = false;
             ob.Status = 0;
 

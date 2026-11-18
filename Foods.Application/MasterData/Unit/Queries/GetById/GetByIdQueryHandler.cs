@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Unit.Queries.GetById
+namespace Foods.Application.MasterData.Unit.Queries.GetById
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -18,11 +18,14 @@
 
             return new Result<GetByIdQueryResponse>(System.Net.HttpStatusCode.OK,
                 new GetByIdQueryResponse(
-                    Ob.Id , 
+                    Ob.Id,
                     Ob.Name!,
                     Ob.NickName,
                     Ob.BasicQuantity,
-                    Ob.BeDivided), null);
+                    Ob.BeDivided,
+                    Ob.IconPath,
+                    Ob.Color,
+                    Ob.TextColor), null);
         }
     }
 }

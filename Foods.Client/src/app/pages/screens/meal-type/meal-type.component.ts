@@ -1,0 +1,260 @@
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { ApiService, SearchExtra, extraFromParams, hasExtra } from '../../../core/api.service';
+import { DraftService } from '../../../core/draft.service';
+import { mediaUrl } from '../../../core/environment';
+import { ItemCard, MealItemFilter } from '../../../core/models';
+import { FaScreenHeaderComponent } from '../shared/screen-header.component';
+import { FaTabBarComponent } from '../shared/tab-bar.component';
+import { FaIconComponent } from '../shared/icon.component';
+import { FaFoodRowComponent } from '../shared/food-row.component';
+import { FoodRow } from '../shared/screens.data';
+import { FaSearchBarComponent } from '../shared/search-bar.component';
+
+const PAGE_SIZE = 20;
+
+/** Meals of one meal type, e.g. الغداء — or all items when id=all. */
+@Component({
+  selector: 'app-meal-type-screen',
+  imports: [FaScreenHeaderComponent, FaTabBarComponent, FaIconComponent, FaFoodRowComponent, FaSearchBarComponent],
+  template: `
+    <div class="fa-screen" dir="rtl" style="padding-bottom: calc(335 * var(--s))">
+      <fa-screen-header [title]="title" art="assets/screens/art/meal-type.svg" titleIcon="cloche" subtitle="اختر الأكلات التي تريد إضافتها إلى خطتك" [height]="255" [titleY]="190" [backY]="157" />
+      <fa-search-bar placeholder="ابحث عن أكلة أو مكوّن أو وصفة..." [value]="query"
+                     [categoryId]="extra.categoryId || null" [ingredient]="extra.ingredient || ''"
+                     [kitchenId]="extra.kitchenId || null" [groupId]="extra.groupId || null" [mealId]="extra.mealId || null"
+                     (valueChange)="query = $event; reloadItems()" (extraChange)="extra = $event; reloadItems()" />
+      <div class="fa-chips" style="margin-top: calc(28 * var(--s))">
+        @for (chip of filters; track chip.id ?? 'all') {
+          <button type="button" class="fa-chip mt-wide" [class.on]="(chip.id || '') === cuisineId" (click)="selectFilter(chip)">
+            @if (imageOf(chip); as src) {
+              <img class="chip-ico" [src]="src" alt="">
+            } @else {
+              <fa-icon [name]="iconOf(chip)" [weight]="1.8" />
+            }
+            {{ chip.name }}<span class="chip-count">{{ chip.count }}</span>
+          </button>
+        }
+      </div>
+      <div class="fa-rows" style="margin-top: calc(28 * var(--s))">
+        @for (item of rows; track item.id) {
+          <fa-food-row [item]="item" [greenSelection]="true" [cuisineId]="cuisineId || extra.kitchenId || null" (selectionChange)="onSelectionChange()" />
+        }
+        @if (loading || loadingMore) {
+          <div class="mt-loading">جاري التحميل...</div>
+        } @else if (!rows.length) {
+          <div class="mt-loading">لا توجد أكلات لهذا المطبخ حالياً</div>
+        }
+      </div>
+      <fa-tab-bar force="home" />
+    </div>
+  `,
+  styles: [`
+    .tall { height: calc(94 * var(--s)); border-radius: calc(47 * var(--s)); }
+    .square { height: calc(90 * var(--s)); border-radius: calc(30 * var(--s)) !important; }
+    .mt-wide { padding: 0 calc(22 * var(--s)) !important; font-size: calc(24 * var(--s)); }
+    .chip-ico { width: calc(34 * var(--s)); height: calc(34 * var(--s)); object-fit: contain; }
+    .chip-count {
+      min-width: calc(40 * var(--s)); height: calc(40 * var(--s)); padding: 0 calc(6 * var(--s)); box-sizing: border-box;
+      display: inline-flex; align-items: center; justify-content: center; border-radius: calc(20 * var(--s));
+      background: #E6F0D3; color: #2F7D1E; font-size: calc(19 * var(--s)); font-weight: 800; line-height: 1;
+      text-box: trim-both cap alphabetic;
+    }
+    .fa-chip.on .chip-count { background: #fff; color: #F26A0A; }
+    .mt-loading {
+      text-align: center; padding: calc(24 * var(--s));
+      color: #8A6A4A; font-size: calc(26 * var(--s)); font-weight: 700;
+    }
+  `]
+})
+export class MealTypeScreenComponent implements OnInit, OnDestroy {
+  rows: FoodRow[] = [];
+  filters: MealItemFilter[] = [];
+  title = 'الوجبة';
+  query = '';
+  extra: SearchExtra = {};
+  cuisineId = '';
+  private autoPicked = false;
+  selected = 0;
+  loading = false;
+  loadingMore = false;
+  private readonly mealKey: string;
+  private readonly isAll: boolean;
+  private searchTimer = 0;
+  private hasMore = true;
+  private draftSub?: Subscription;
+  private pageSub?: Subscription;
+
+  constructor(private route: ActivatedRoute, private api: ApiService, private draft: DraftService) {
+    this.mealKey = route.snapshot.paramMap.get('id') ?? '';
+    this.isAll = this.mealKey === 'all' || this.mealKey === 'الكل';
+    const stateName = history.state?.['name'];
+    if (this.isAll) this.title = 'الكل';
+    else if (typeof stateName === 'string' && stateName.trim()) this.title = stateName.trim();
+    const params = route.snapshot.queryParamMap;
+    this.cuisineId = params.get('cuisineId') || '';
+    this.query = (params.get('q') || '').trim();
+    const extra = extraFromParams(key => params.get(key));
+    if (hasExtra(extra)) this.extra = extra;
+  }
+
+  ngOnInit(): void {
+    this.draft.bootFromServer();
+    this.selected = this.draft.selectedCount;
+    this.draftSub = this.draft.selectionCount$.subscribe(count => {
+      this.selected = count;
+      this.syncRowsFromDraft();
+    });
+    if (!this.mealKey) return;
+
+    if (!this.isAll && this.title === 'الوجبة') {
+      this.api.meals().subscribe({
+        next: meals => {
+          const meal = meals.find(item => item.id === this.mealKey);
+          if (meal?.name) this.title = meal.name;
+        }
+      });
+    }
+
+    this.loadFilters();
+    this.reloadItems();
+  }
+
+  ngOnDestroy(): void {
+    this.pageSub?.unsubscribe();
+    window.clearTimeout(this.searchTimer);
+    this.draftSub?.unsubscribe();
+  }
+
+  onSelectionChange(): void {
+    this.selected = this.draft.selectedCount;
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (!this.hasMore || this.loading || this.loadingMore) return;
+    const doc = document.documentElement;
+    const remaining = doc.scrollHeight - (window.scrollY + window.innerHeight);
+    if (remaining < 320) this.loadPage(false);
+  }
+
+  selectFilter(chip: MealItemFilter): void {
+    this.cuisineId = chip.id || '';
+    this.reloadItems();
+  }
+
+  reloadItems(): void {
+    window.clearTimeout(this.searchTimer);
+    this.searchTimer = window.setTimeout(() => {
+      this.rows = [];
+      this.hasMore = true;
+      this.loadPage(true);
+    }, this.query ? 250 : 0);
+  }
+
+  loadFilters(): void {
+    const request = this.isAll ? this.api.cuisines() : this.api.mealFilters(this.mealKey);
+    request.subscribe({
+      next: filters => {
+        this.filters = filters?.length ? filters : [];
+        // A meal opens on the customer's own country's cuisine (they can pick another).
+        // A category or a group (opened from the browse tabs) starts on that cuisine too.
+        const browsing = !!this.extra?.categoryId || !!this.extra?.groupId;
+        if ((!this.isAll || browsing) && !this.cuisineId && !this.autoPicked) {
+          this.autoPicked = true;
+          const mine = this.filters.find(f => f.isMine && f.id && f.count > 0);
+          if (mine) { this.cuisineId = mine.id || ''; this.reloadItems(); }
+        }
+        if (!this.cuisineId) return;
+        setTimeout(() => {
+          document.querySelector<HTMLElement>('.fa-chip.on')?.scrollIntoView({
+            behavior: 'smooth',
+            inline: 'center',
+            block: 'nearest'
+          });
+        });
+      },
+      error: () => { this.filters = []; }
+    });
+  }
+
+  loadPage(reset: boolean): void {
+    if (!this.mealKey || (this.loadingMore && !reset)) return;
+    // A new search/filter supersedes any in-flight page instead of being dropped.
+    if (reset) this.pageSub?.unsubscribe();
+    if (!reset && !this.hasMore) return;
+
+    const skip = reset ? 0 : this.rows.length;
+    this.loadingMore = true;
+    if (reset) this.loading = true;
+
+    const request = this.isAll
+      ? this.api.menuItems(this.query.trim(), this.cuisineId || null, skip, PAGE_SIZE, this.extra)
+      : this.api.items(this.mealKey, this.query.trim(), this.cuisineId || null, skip, PAGE_SIZE, this.extra);
+
+    this.pageSub = request.subscribe({
+      next: items => {
+        const mapped = items.map(item => this.toRow(item));
+        this.rows = reset ? mapped : [...this.rows, ...mapped];
+        this.hasMore = mapped.length >= PAGE_SIZE;
+        this.loadingMore = false;
+        this.loading = false;
+      },
+      error: () => {
+        this.loadingMore = false;
+        this.loading = false;
+        this.hasMore = false;
+      }
+    });
+  }
+
+  imageOf(chip: MealItemFilter): string {
+    const path = chip.iconPath || '';
+    if (path.includes('/') || path.startsWith('http')) return mediaUrl(path);
+    return '';
+  }
+
+  iconOf(chip: MealItemFilter): string {
+    const path = (chip.iconPath || '').trim();
+    if (path && !path.includes('/') && !path.startsWith('http')) return path;
+    return this.iconName(chip.name);
+  }
+
+  iconName(name: string): string {
+    const value = (name || '').trim();
+    if (value === 'الكل') return 'grid';
+    if (/نباتي|نبات|فيجان|vegan/.test(value)) return 'vegan';
+    if (/صحي|سلطة|دايت/.test(value)) return 'leaf';
+    if (/مشوي|كباب|شيش|ستيك|مشويات/.test(value)) return 'grill';
+    if (/غربي|باستا|بيتزا|برجر|خليجي/.test(value)) return 'chef';
+    return 'cloche';
+  }
+
+  private syncRowsFromDraft(): void {
+    for (const row of this.rows) {
+      const qty = this.draft.count(row.id);
+      row.qty = qty;
+      row.checked = qty > 0;
+    }
+  }
+
+  private toRow(item: ItemCard): FoodRow {
+    const qty = this.draft.count(item.id);
+    return {
+      id: item.id,
+      title: item.name || '',
+      desc: item.summary || '',
+      tag: item.cuisineName || item.categoryName || 'أكلة',
+      tagIcon: this.iconName(item.cuisineName || item.categoryName || ''),
+      image: mediaUrl(item.imagePath) || 'assets/screens/foods/peppers.png',
+      images: item.images || [],
+      checked: qty > 0,
+      favorite: !!item.isFavorite,
+      qty,
+      price: item.price ?? null,
+      priceMissing: item.priceMissing || 0,
+      recipeCountryId: item.recipeCountryId || null
+    };
+  }
+}

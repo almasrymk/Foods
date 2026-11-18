@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Item.ItemCategory.Queries.Search
+namespace Foods.Application.MasterData.Item.ItemCategory.Queries.Search
 {
     using Foods.Domain.Shared;
     using Foods.Domain.Abstraction;
@@ -15,7 +15,7 @@
                 list = new List<ItemCategory>();
 
             return new Result<List<SearchQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e => new SearchQueryResponse(e.Id, e.Name!)).ToList()
+                list.OrderBy(e => e.Sort).ThenBy(e => e.Name).Select(e => new SearchQueryResponse(e.Id, e.Name!, e.IconPath, e.Color, e.TextColor, e.Sort)).ToList()
                 , null);
         }
     }

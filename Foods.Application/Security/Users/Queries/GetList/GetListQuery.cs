@@ -1,0 +1,8 @@
+namespace Foods.Application.Security.Users.Queries.GetList
+{
+    using Foods.Application.Abstraction.Query;
+
+    public sealed record GetListQuery() : IQuery<List<GetListQueryResponse>>;
+
+    public sealed record GetListQueryResponse(Guid Id, string Name, string UserName, string Role, Guid? CountryId, string? CountryName, string? Dialect);
+}

@@ -10,7 +10,7 @@
 
     public sealed class TokenProvider(IConfiguration configuration , ILogger<TokenProvider> logger) : ITokenProvider
     {
-        public string CreateToken(Guid Id , string UserName)
+        public string CreateToken(Guid Id , string UserName, string Role)
         {
             logger.LogInformation("Start Create Token");
             string secretKey = configuration["Jwt:Key"]!;
@@ -20,7 +20,9 @@
             {
                 Subject = new ClaimsIdentity([
                 new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub , "" + Id),
-                new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email , UserName)
+                new Claim(ClaimTypes.NameIdentifier , "" + Id),
+                new Claim(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email , UserName),
+                new Claim(ClaimTypes.Role , Role)
                 ]),
                 Expires = DateTime.UtcNow.AddDays(30),
                 SigningCredentials = credentials,

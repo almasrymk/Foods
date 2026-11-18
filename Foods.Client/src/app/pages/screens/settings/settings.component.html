@@ -1,0 +1,170 @@
+<div class="fa-screen st" dir="rtl">
+  <img class="st-art" src="assets/screens/art/settings.svg" alt="">
+  <fa-top-bar class="st-tb" />
+  <div class="cv">
+    <!-- header (the shared top bar above replaces the mockup's logo and bowl) -->
+    <button type="button" class="st-back" (click)="location.back()" aria-label="رجوع"><fa-icon name="arrowLeft" [weight]="2.4" /></button>
+    <!-- title block in the meals plan screen style -->
+    <div class="st-ph-title">
+      <div class="st-ph-row"><fa-icon class="st-ph-icon" name="gear" [filled]="true" /><h1>الإعدادات</h1></div>
+      <img class="st-ph-underline" src="assets/screens/plan/underline.png" alt="">
+    </div>
+    <p class="st-ph-sub">خصص حسابك وتفضيلات التطبيق وأفراد أسرتك</p>
+
+    <!-- profile -->
+    <h2 class="sec" style="top: calc(197 * var(--s))"><span class="ic"><fa-icon name="person" [filled]="true" /></span>الملف الشخصي</h2>
+    <button type="button" class="st-card profile" (click)="openAccount()" aria-label="تعديل الملف الشخصي">
+      <span class="st-avatar">@if (photoUrl) { <img class="st-photo" [src]="photoUrl" alt=""> } @else { <fa-icon name="person" [filled]="true" /> }<i class="edit"><fa-icon name="pencil" [filled]="true" /></i></span>
+      <i class="vl"></i>
+      <b class="st-name">{{ name || '—' }}</b>
+      <span class="email">{{ userName }}</span>
+      <fa-icon class="st-go" name="chevronRight" [weight]="2" />
+    </button>
+
+    <!-- app settings -->
+    <h2 class="sec" style="top: calc(412 * var(--s))"><span class="ic"><fa-icon name="gear" [filled]="true" /></span>إعدادات التطبيق</h2>
+    <div class="st-card st-app">
+      <div class="st-row" style="top: calc(17 * var(--s))">
+        <fa-icon class="ri" name="globe" [weight]="1.8" /><b class="lbl">اللغة</b>
+        <div class="lang" role="group" aria-label="اللغة">
+          <button type="button" class="on" aria-pressed="true">العربية</button>
+          <button type="button" class="soon" disabled title="الواجهة الإنجليزية قريباً">English <small>قريباً</small></button>
+        </div>
+      </div>
+      <i class="hl" style="top: calc(82 * var(--s))"></i>
+      <div class="st-row" style="top: calc(97 * var(--s))">
+        <fa-icon class="ri" name="pin" [weight]="1.8" /><b class="lbl two">البلد<small>اللهجة والأسماء</small></b>
+        <button type="button" class="st-country" (click)="toggleCountry($event)" [attr.aria-expanded]="countryOpen">
+          @if (flag) { <img [src]="flag" alt=""> } @else { <fa-icon class="pin" name="pin" [weight]="2" /> }
+          <span>{{ countryName || 'اختار البلد' }}</span><fa-icon name="chevronDown" [weight]="2.2" />
+        </button>
+        @if (countryOpen) {
+          <ul class="st-menu" role="listbox" (click)="$event.stopPropagation()">
+            @for (c of countries; track c.id) {
+              <li><button type="button" [class.on]="c.id === countryId" (click)="pickCountry(c)">{{ c.name }}<small>{{ c.dialect }}</small></button></li>
+            }
+          </ul>
+        }
+      </div>
+      <i class="hl" style="top: calc(167 * var(--s))"></i>
+      <!-- the country the customer is in: dishes, recipe versions, order, search and prices follow it; البلد above only sets the dialect -->
+      <div class="st-row" style="top: calc(177 * var(--s))">
+        <fa-icon class="ri" name="home" [weight]="1.8" />
+        <b class="lbl two">البلد اللي أنت فيها<small>الأكلات والترتيب والبحث والأسعار</small></b>
+        <!-- same box and inline list as البلد above -->
+        <button type="button" class="st-country" (click)="toggleLive($event)" [attr.aria-expanded]="liveOpen" aria-label="البلد اللي أنت فيها">
+          @if (liveFlag) { <img [src]="liveFlag" alt=""> } @else { <fa-icon class="pin" name="pin" [weight]="2" /> }
+          <span>{{ liveName || 'اختار البلد' }}</span><fa-icon name="chevronDown" [weight]="2.2" />
+        </button>
+        @if (liveOpen && priceCountry) {
+          <ul class="st-menu" role="listbox" (click)="$event.stopPropagation()">
+            @for (c of priceCountry.countries; track c.id) {
+              <li><button type="button" [class.on]="c.id === priceCountry.countryId" (click)="pickLive(c.id)">{{ c.name }}{{ c.id === priceCountry.ownCountryId ? ' (بلدي)' : '' }}<small>{{ !c.currency || c.currency === 'ج.م' ? 'جنيه' : c.currency }}</small></button></li>
+            }
+          </ul>
+        }
+      </div>
+      <i class="hl" style="top: calc(242 * var(--s))"></i>
+      <button type="button" class="st-row link" (click)="openAccount()" style="top: calc(247 * var(--s))">
+        <fa-icon class="ri" name="idCard" [weight]="1.8" />
+        <b class="lbl two">بيانات الحساب<small>الاسم واسم المستخدم</small></b>
+        <fa-icon class="chev" name="chevronLeft" [weight]="2" />
+      </button>
+    </div>
+
+    <!-- family -->
+    <h2 class="sec" style="top: calc(830 * var(--s)); right: calc(54 * var(--s))"><span class="ic"><fa-icon name="group" [filled]="true" /></span>أفراد أسرتي</h2>
+    <p class="hint">أدر أفراد أسرتك لتجربة مخصصة وأفضل في FOODS</p>
+    <div class="st-card fam">
+      <div class="members">
+        @for (m of family; track m.id) {
+          <div class="member">
+            <img [src]="m.image" [alt]="m.name">
+            <b>{{ m.name }}</b>
+            <button type="button" class="del" (click)="remove(m)" [attr.aria-label]="'حذف ' + m.name"><fa-icon name="trash" [weight]="2" /></button>
+            <button type="button" class="ed" (click)="openFamily()" [attr.aria-label]="'تعديل ' + m.name"><fa-icon name="pencil" [filled]="true" /></button>
+          </div>
+        }
+      </div>
+      <button type="button" class="st-add" (click)="openFamily(true)"><fa-icon name="plusCircle" [weight]="2" />إضافة فرد جديد</button>
+    </div>
+
+    <!-- notifications -->
+    <h2 class="sec" style="top: calc(1197 * var(--s))"><span class="ic"><fa-icon name="bell" [filled]="true" /></span>الإشعارات</h2>
+    <div class="st-card notif">
+      @for (r of notifyRows; track r.key; let i = $index) {
+        <div class="st-row nrow" [style.top]="'calc(' + (i * 66 + 8) + ' * var(--s))'">
+          <fa-icon class="ri" [name]="r.icon" [weight]="1.8" [filled]="r.icon === 'bell'" />
+          <b class="lbl two">{{ r.label }}<small>{{ r.sub }}</small></b>
+          <button type="button" class="sw" role="switch" [class.on]="settings[r.key]" [attr.aria-checked]="settings[r.key]"
+                  [attr.aria-label]="r.label" (click)="toggle(r.key)"><i></i></button>
+        </div>
+        <i class="hl" [style.top]="'calc(' + (i * 66 + 74) + ' * var(--s))'"></i>
+      }
+      <a class="st-row link nrow" routerLink="/notifications" [style.top]="'calc(' + (notifyRows.length * 66 + 8) + ' * var(--s))'">
+        <fa-icon class="ri" name="list" [weight]="1.8" />
+        <b class="lbl">كل الإشعارات</b>
+        <fa-icon class="chev" name="chevronLeft" [weight]="2" />
+      </a>
+    </div>
+
+    <!-- prices -->
+    <h2 class="sec" style="top: calc(1687 * var(--s))"><span class="ic"><fa-icon name="tag" [weight]="2" /></span>الأسعار</h2>
+    <div class="st-card prices">
+      <div class="st-row nrow" style="top: calc(8 * var(--s))">
+        <fa-icon class="ri" name="coins" [weight]="1.8" />
+        <b class="lbl two">التعامل بالأسعار<small>يظهر السعر في الأكلات والمفضلات والطلبات</small></b>
+        <button type="button" class="sw" role="switch" [class.on]="!!settings.usePrices" [attr.aria-checked]="!!settings.usePrices"
+                aria-label="التعامل بالأسعار" (click)="togglePrices()"><i></i></button>
+      </div>
+      <i class="hl" style="top: calc(74 * var(--s))"></i>
+      <a class="st-row link nrow" routerLink="/prices" style="top: calc(74 * var(--s))">
+        <fa-icon class="ri" name="tag" [weight]="1.8" />
+        <b class="lbl two">أسعار المكونات<small>غيّر سعر أي مكون ليك انت بس</small></b>
+        <fa-icon class="chev" name="chevronLeft" [weight]="2" />
+      </a>
+    </div>
+
+    <!-- about -->
+    <h2 class="sec" style="top: calc(1909 * var(--s))"><span class="ic"><fa-icon name="info" [weight]="2" /></span>عن التطبيق</h2>
+    <div class="st-card about">
+      @for (r of about; track r.id; let i = $index) {
+        <div class="arow" [class.soon]="r.soon" [style.top]="'calc(' + (i * 66 + 8) + ' * var(--s))'" [attr.aria-disabled]="r.soon || null">
+          <fa-icon class="ri" [name]="r.icon" [weight]="1.8" />
+          <b class="lbl" [class.two]="r.sub">{{ r.label }}@if (r.sub) { <small class="ver">{{ r.sub }}</small> }</b>
+          @if (r.soon) { <span class="soon-tag">قريباً</span> }
+        </div>
+        @if (i < about.length - 1) { <i class="hl" [style.top]="'calc(' + (i * 66 + 74) + ' * var(--s))'"></i> }
+      }
+    </div>
+
+    <button type="button" class="logout" (click)="logout()"><fa-icon name="logout" [weight]="2" />تسجيل الخروج</button>
+  </div>
+
+  @if (accountOpen) {
+    <div class="st-sheet-bg" (click)="accountOpen = false"></div>
+    <form class="st-sheet" (ngSubmit)="saveAccount()" role="dialog" aria-label="بيانات الحساب">
+      <h3>بيانات الحساب</h3>
+      <div class="st-photo-edit">
+        <span class="st-photo-prev">@if (photoDraftUrl) { <img [src]="photoDraftUrl" alt="صورتك"> } @else { <fa-icon name="person" [filled]="true" /> }</span>
+        <div class="st-photo-acts">
+          <label class="st-photo-btn" [class.busy]="uploading">{{ uploading ? 'جاري الرفع...' : (photoDraft ? 'تغيير الصورة' : 'إضافة صورة') }}
+            <input type="file" accept="image/*" (change)="pickPhoto($event)" [disabled]="uploading">
+          </label>
+          @if (photoDraft) { <button type="button" class="st-photo-del" (click)="photoDraft = ''">إزالة الصورة</button> }
+        </div>
+      </div>
+      <label>الاسم<input name="name" [(ngModel)]="nameDraft" maxlength="100" autocomplete="name"></label>
+      <label>اسم المستخدم<input name="userName" [value]="userName" disabled dir="ltr"></label>
+      <p class="note">تغيير كلمة المرور قريباً.</p>
+      @if (error) { <p class="err">{{ error }}</p> }
+      <div class="acts">
+        <button type="button" class="ghost" (click)="accountOpen = false">إلغاء</button>
+        <button type="submit" class="primary" [disabled]="busy || uploading">حفظ</button>
+      </div>
+    </form>
+  }
+  @if (toast) { <div class="st-toast" role="status">{{ toast }}</div> }
+  <fa-family-sheet [open]="familyOpen" [startAdding]="familyAdd" (closed)="familyOpen = false" (changed)="onFamilyChanged($event)" />
+  <fa-tab-bar />
+</div>

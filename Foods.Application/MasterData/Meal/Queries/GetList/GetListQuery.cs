@@ -4,5 +4,5 @@
 
     public sealed record GetListQuery() : IQuery<List<GetListQueryResponse>>;
 
-    public sealed record GetListQueryResponse(Guid Id , string Name, string Description);
+    public sealed record GetListQueryResponse(Guid Id, string Name, string Description, string? ImagePath, string? IconPath, string? Color, string? TextColor, int Sort);
 }

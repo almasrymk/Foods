@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Unit.Queries.GetList
+namespace Foods.Application.MasterData.Unit.Queries.GetList
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -18,12 +18,15 @@
                 list = new List<Unit>();
 
             return new Result<List<GetListQueryResponse>>(System.Net.HttpStatusCode.OK,
-                list.Select(e=> new GetListQueryResponse(
+                list.Select(e => new GetListQueryResponse(
                     e.Id,
                     e.Name!,
                     e.NickName,
                     e.BasicQuantity,
-                    e.BeDivided)).ToList(), null);
+                    e.BeDivided,
+                    e.IconPath,
+                    e.Color,
+                    e.TextColor)).ToList(), null);
         }
     }
 }

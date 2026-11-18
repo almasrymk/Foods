@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Unit.Commands.Update
+namespace Foods.Application.MasterData.Unit.Commands.Update
 {
     using System.Threading;
     using Foods.Domain.Shared;
@@ -22,6 +22,9 @@
             ob.NickName = request.NickName;
             ob.BasicQuantity = request.BasicQuantity;
             ob.BeDivided = request.BeDivided;
+            ob.IconPath = request.IconPath;
+            ob.Color = request.Color;
+            ob.TextColor = request.TextColor;
             ob.IsDeleted = false;
             ob.Status = 0;
 

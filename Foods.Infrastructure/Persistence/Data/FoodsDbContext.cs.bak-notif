@@ -1,0 +1,114 @@
+﻿namespace Foods.Infrastructure.Persistence.Data
+{
+    using Foods.Domain.Abstraction;
+    using Foods.Domain.Entity.Request;
+    using Foods.Domain.Entity.Security;
+    using Microsoft.EntityFrameworkCore;
+    using Foods.Domain.Entity.MasterData;
+    using Foods.Domain.Entity.MasterData.Item;
+    using Foods.Domain.Entity.MasterData.Content;
+    using Foods.Domain.Entity.MasterData.TradeMark;
+
+    public class FoodsDbContext(DbContextOptions<FoodsDbContext> options) : DbContext(options), IFoodsDbContext
+    {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = RoleIds.Admin, Name = RoleNames.Admin },
+                new Role { Id = RoleIds.Customer, Name = RoleNames.Customer }
+            );
+
+            modelBuilder.Entity<AgeBand>().HasData(
+                new AgeBand { Id = AgeBandIds.Infant, Name = "رضيع", MinAge = 0, MaxAge = 2, Factor = 0.25m },
+                new AgeBand { Id = AgeBandIds.Child, Name = "طفل", MinAge = 3, MaxAge = 8, Factor = 0.5m },
+                new AgeBand { Id = AgeBandIds.Teen, Name = "يافع", MinAge = 9, MaxAge = 13, Factor = 0.75m },
+                new AgeBand { Id = AgeBandIds.Adult, Name = "بالغ", MinAge = 14, MaxAge = 120, Factor = 1m }
+            );
+
+            modelBuilder.Entity<User>().HasData(
+                new User { Id = new Guid("111d7bfe-8dda-4af9-b651-f4a8d9008b94"), Name = "Admin", UserName = "Admin" , Password = "Admin1234"  , RoleId = new Guid("92d19009-cb05-4645-a209-552c3e522a56") }
+            );
+
+            modelBuilder.Entity<Country>().HasData(
+                CountryIds.All.Select(row => new Country
+                {
+                    Id = row.Id,
+                    Name = row.Name,
+                    Dialect = row.Dialect
+                }).ToArray()
+            );
+        }
+
+        #region MasterData
+        #region Content
+        public virtual DbSet<Content> Contents { get; set; }
+        public virtual DbSet<ContentAlternative> ContentAlternatives { get; set; }
+        public virtual DbSet<ContentCategory> ContentCategories { get; set; }
+        public virtual DbSet<ContentGroup> ContentGroup { get; set; }
+        public virtual DbSet<ContentLevel> ContentLevels { get; set; }
+        public virtual DbSet<ContentPrice> ContentPrices { get; set; }
+        public virtual DbSet<ContentTradeMark> ContentTradeMarks { get; set; }
+        #endregion
+
+        #region Item
+        public virtual DbSet<Item> Items { get; set; }
+        public virtual DbSet<ItemCategory> ItemCategories { get; set; }
+        public virtual DbSet<ItemContent> ItemContents { get; set; }
+        public virtual DbSet<ItemGroup> ItemGroups { get; set; }
+        public virtual DbSet<ItemLevel> ItemLevels { get; set; }
+        public virtual DbSet<ItemMeal> ItemMeals { get; set; }
+        public virtual DbSet<ItemCountry> ItemCountries { get; set; }
+        #endregion
+
+        #region TradeMark
+        public virtual DbSet<TradeMark> TradeMarks { get; set; }
+        public virtual DbSet<TradeMarkContentGroup> TradeMarkContentGroups { get; set; }
+        #endregion
+        public virtual DbSet<Level> Levels { get; set; }
+        public virtual DbSet<Country> Countries { get; set; }
+        public virtual DbSet<Meal> Meals { get; set; }
+        public virtual DbSet<Cuisine> Cuisines { get; set; }
+        public virtual DbSet<Unit> Units { get; set; }
+        public virtual DbSet<PurchasePlace> PurchasePlaces { get; set; }
+        public virtual DbSet<AgeBand> AgeBands { get; set; }
+        public virtual DbSet<ItemStep> ItemSteps { get; set; }
+        public virtual DbSet<ItemVideo> ItemVideos { get; set; }
+        public virtual DbSet<ItemImage> ItemImages { get; set; }
+        public virtual DbSet<ContentImage> ContentImages { get; set; }
+        public virtual DbSet<UserItemContent> UserItemContents { get; set; }
+        public virtual DbSet<UserItemStep> UserItemSteps { get; set; }
+        #endregion
+
+        #region Request
+        public virtual DbSet<Foods.Domain.Entity.Request.Request> Requests { get; set; }
+        public virtual DbSet<Foods.Domain.Entity.Request.RequestContent> RequestContents { get; set; }
+        public virtual DbSet<RequestItem> RequestItems { get; set; }
+        public virtual DbSet<RequestTrack> RequestTracks { get; set; }
+        public virtual DbSet<RequestShoppingLine> RequestShoppingLines { get; set; }
+        #endregion
+
+        #region Security
+        public virtual DbSet<Permission> Permissions { get; set; }
+        public virtual DbSet<Role> Roles { get; set; }
+        public virtual DbSet<RolePermission> RolePermissions { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<FamilyMember> FamilyMembers { get; set; }
+        public virtual DbSet<Favorite> Favorites { get; set; }
+        #endregion
+         
+        public DbSet<TEntity> Set<TEntity>() where TEntity : class
+        {
+            return base.Set<TEntity>();
+        }
+
+        public override int SaveChanges()
+        {
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return base.SaveChangesAsync(cancellationToken);
+        }
+    }
+}

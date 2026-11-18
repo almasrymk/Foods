@@ -1,0 +1,78 @@
+﻿namespace Foods.API.Controllers.Customer
+{
+    using MediatR;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Foods.Domain.Entity.Security;
+    using Foods.Application.Customer.Favorites;
+    using Foods.Application.Customer.Family;
+    using Foods.Application.Customer.Catalog;
+    using Foods.Application.Security.Queries.Create;
+    using Foods.Application.Customer.Profile;
+
+    [Authorize(Roles = $"{RoleNames.Customer},{RoleNames.Admin}")]
+    [ApiController]
+    [Route("customer")]
+    public class CustomerAccountController(ISender sender) : ControllerBase
+    {
+        [HttpGet("favorites")]
+        public async Task<IActionResult> Favorites(string? text, Guid? cuisineId, int skip, int? take, Guid? categoryId, string? ingredient, CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetFavoritesQuery(text, cuisineId, skip, take, categoryId, ingredient), cancellationToken));
+        }
+
+        [HttpGet("favorites/filters")]
+        public async Task<IActionResult> FavoriteFilters(CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetFavoriteFiltersQuery(), cancellationToken));
+        }
+
+        [HttpGet("categories")]
+        public async Task<IActionResult> Categories(CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetItemCategoriesQuery(), cancellationToken));
+        }
+
+        [HttpGet("cuisines")]
+        public async Task<IActionResult> Cuisines(CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetCuisinesQuery(), cancellationToken));
+        }
+
+        [HttpGet("suggested")]
+        public async Task<IActionResult> Suggested(string? text, Guid? cuisineId, int skip, int take, Guid? categoryId, string? ingredient, CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetSuggestedItemsQuery(text, cuisineId, skip, take <= 0 ? 8 : take, categoryId, ingredient), cancellationToken));
+        }
+
+        [HttpGet("menu-items")]
+        public async Task<IActionResult> MenuItems(string? text, Guid? cuisineId, int skip, int? take, Guid? categoryId, string? ingredient, CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetItemsQuery(null, text, cuisineId, skip, take, categoryId, ingredient), cancellationToken));
+        }
+
+        [HttpGet("family")]
+        public async Task<IActionResult> Family(CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetFamilyQuery(), cancellationToken));
+        }
+
+        [HttpPut("family")]
+        public async Task<IActionResult> SaveFamily([FromBody] List<FamilyMemberInput> members, CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new SaveFamilyCommand(members), cancellationToken));
+        }
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> Profile(CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(new GetProfileQuery(), cancellationToken));
+        }
+
+        [HttpPut("country")]
+        public async Task<IActionResult> Country([FromBody] SaveCountryCommand command, CancellationToken cancellationToken)
+        {
+            return this.From(await sender.Send(command, cancellationToken));
+        }
+    }
+}

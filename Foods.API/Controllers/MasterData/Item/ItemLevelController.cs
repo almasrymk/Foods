@@ -1,4 +1,4 @@
-﻿namespace Foods.API.Controllers.MasterData.Item
+namespace Foods.API.Controllers.MasterData.Item
 {
     using MediatR;
     using System.Net;
@@ -13,7 +13,7 @@
 
     [Authorize]
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("[controller]")]
     public class ItemLevelController(ISender sender) : ControllerBase
     {
         [HttpGet("GetById")]

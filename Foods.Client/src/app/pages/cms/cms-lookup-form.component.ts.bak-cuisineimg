@@ -1,0 +1,131 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CmsService, CountryRow, CuisineRow, NamedRow, UnitRow } from '../../core/cms.service';
+import { findLookup } from './lookup-kinds';
+import { IconComponent } from '../../core/icon.component';
+import { CmsColorPickerComponent } from './cms-color-picker.component';
+import { CmsIconPickerComponent } from './cms-icon-picker.component';
+import { CmsTone } from './cms-palette';
+
+@Component({
+  selector: 'app-cms-lookup-form',
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    IconComponent,
+    CmsIconPickerComponent,
+    CmsColorPickerComponent
+  ],
+  template: `
+    <a class="back" [routerLink]="listLink">الرجوع للقائمة</a>
+    <h1><app-icon [name]="id ? 'edit' : 'add'"></app-icon> {{ id ? 'تعديل' : 'إضافة' }} {{ title }}</h1>
+    <p class="error" *ngIf="error">{{ error }}</p>
+    <form class="panel editor" (ngSubmit)="save()">
+      <div class="fields">
+        <label>الاسم<input [(ngModel)]="name" name="name" required></label>
+        <label *ngIf="dialect">اللهجة<input [(ngModel)]="dialectName" name="dialect" placeholder="مصري، شامي، خليجي"></label>
+        <label *ngIf="unit">الاختصار<input [(ngModel)]="nickName" name="nick"></label>
+        <label *ngIf="cuisine">الترتيب<input [(ngModel)]="sort" name="sort" type="number" min="0" step="1"></label>
+      </div>
+      <section>
+        <h2>الأيقونة</h2>
+        <app-cms-icon-picker
+          [value]="iconPath"
+          (valueChange)="onIconKey($event)"
+          (upload)="onIconUpload($event)">
+        </app-cms-icon-picker>
+      </section>
+      <section>
+        <h2>اللون</h2>
+        <app-cms-color-picker
+          [color]="color"
+          [textColor]="textColor"
+          (pickTone)="pick($event)">
+        </app-cms-color-picker>
+      </section>
+      <button type="submit" class="save">حفظ</button>
+    </form>
+  `
+})
+export class CmsLookupFormComponent implements OnInit {
+  title = '';
+  unit = false;
+  dialect = false;
+  cuisine = false;
+  name = '';
+  dialectName = '';
+  nickName = '';
+  sort = 0;
+  iconPath = '';
+  color = '';
+  textColor = '';
+  id = '';
+  error = '';
+  listLink = '/cms/lookups';
+  private controller = '';
+
+  constructor(private cms: CmsService, private route: ActivatedRoute, private router: Router) {}
+
+  ngOnInit(): void {
+    const kind = findLookup(this.route.snapshot.paramMap.get('kind') || '');
+    if (!kind) { this.error = 'القائمة غير موجودة'; return; }
+    this.title = kind.title;
+    this.unit = !!kind.unit;
+    this.dialect = !!kind.dialect;
+    this.cuisine = !!kind.cuisine;
+    this.controller = kind.key;
+    this.listLink = `/cms/lookups/${kind.key}`;
+    this.id = this.route.snapshot.paramMap.get('id') || '';
+    if (!this.id) return;
+    this.cms.get<NamedRow & UnitRow & CountryRow & CuisineRow>(this.controller, this.id).subscribe({
+      next: row => {
+        this.name = row.name || '';
+        this.nickName = row.nickName || '';
+        this.dialectName = row.dialect || '';
+        this.sort = row.sort ?? 0;
+        this.iconPath = row.iconPath || '';
+        this.color = row.color || '';
+        this.textColor = row.textColor || '';
+      },
+      error: (err: Error) => this.error = err.message
+    });
+  }
+
+  onIconKey(key: string): void {
+    this.iconPath = key;
+  }
+
+  onIconUpload(file: File): void {
+    this.cms.upload(file).subscribe({
+      next: path => this.iconPath = path,
+      error: (err: Error) => this.error = err.message
+    });
+  }
+
+  pick(tone: CmsTone): void {
+    this.color = tone.color;
+    this.textColor = tone.textColor;
+  }
+
+  save(): void {
+    const style = {
+      iconPath: this.iconPath || null,
+      color: this.color || null,
+      textColor: this.textColor || null
+    };
+    const body = this.unit
+      ? { id: this.id, name: this.name, nickName: this.nickName || null, basicQuantity: 1, beDivided: true, ...style }
+      : this.dialect
+        ? { id: this.id, name: this.name, dialect: this.dialectName || null, ...style }
+        : this.cuisine
+          ? { id: this.id, name: this.name, ...style, sort: Number(this.sort) || 0 }
+          : { id: this.id, name: this.name, ...style };
+    const done = () => this.router.navigateByUrl(this.listLink);
+    const fail = (err: Error) => this.error = err.message;
+    if (this.id) this.cms.update(this.controller, body).subscribe({ next: done, error: fail });
+    else this.cms.create(this.controller, body).subscribe({ next: done, error: fail });
+  }
+}

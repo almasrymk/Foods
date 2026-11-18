@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Item.ItemGroup.Commands.Create
+namespace Foods.Application.MasterData.Item.ItemGroup.Commands.Create
 {
     using System.Net;
     using System.Threading;
@@ -16,8 +16,12 @@
             {            
             var ob = new ItemGroup
             {
-                Id = new Guid(),
+                Id = Guid.NewGuid(),
                 Name = request.Name,
+                    IconPath = request.IconPath,
+                    Color = request.Color,
+                    TextColor = request.TextColor,
+                    Sort = request.Sort,
                 IsDeleted = false,
                 Status = 0
             };

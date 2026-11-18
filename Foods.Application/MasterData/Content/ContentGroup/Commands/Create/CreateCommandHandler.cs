@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Content.ContentGroup.Commands.Create
+namespace Foods.Application.MasterData.Content.ContentGroup.Commands.Create
 {
     using System.Net;
     using System.Threading;
@@ -16,8 +16,11 @@
             {
                 var ob = new ContentGroup
                 {
-                    Id = new Guid(),
+                    Id = Guid.NewGuid(),
                     Name = request.Name,
+                    IconPath = request.IconPath,
+                    Color = request.Color,
+                    TextColor = request.TextColor,
                     IsDeleted = false,
                     Status = 0
                 };

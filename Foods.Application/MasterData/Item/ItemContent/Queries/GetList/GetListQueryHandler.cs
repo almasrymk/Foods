@@ -26,7 +26,9 @@
                     e.ItemId,
                     e.ContentId,
                     e.UnitId,
-                    e.Quantity)).ToList()
+                    e.Quantity,
+                    e.IsOptional,
+                    e.IsDefault)).ToList()
                 , null);
         }
     }

@@ -16,7 +16,7 @@
             {            
             var ob = new TradeMark
             {
-                Id = new Guid(),
+                Id = Guid.NewGuid(),
                 Name = request.Name,
                 IsDeleted = false,
                 Status = 0

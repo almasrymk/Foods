@@ -1,0 +1,474 @@
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Location } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { ApiService } from '../core/api.service';
+import { DraftService } from '../core/draft.service';
+import { mediaUrl } from '../core/environment';
+import { purchaseText } from '../core/purchase';
+import { OrderDetail, ShoppingLine } from '../core/models';
+import { FaTopBarComponent } from './screens/shared/top-bar.component';
+import { FaTabBarComponent } from './screens/shared/tab-bar.component';
+
+interface PlaceGroup {
+  place: string;
+  icon: string;
+  lines: ShoppingLine[];
+}
+
+/** طلب الشراء — matches the purchase-order mockup. */
+@Component({
+  selector: 'app-order',
+  imports: [FaTopBarComponent, FaTabBarComponent],
+  template: `
+    <div class="fa-screen po" dir="rtl" [class.print-lines]="printMode === 'lines'">
+      <fa-top-bar class="no-print" />
+
+      <div class="nav-row no-print">
+        <!-- RTL: back on the right, title in the middle, share on the left -->
+        <button type="button" class="nav-btn" (click)="location.back()" aria-label="رجوع">
+          <svg viewBox="0 0 24 24" class="chev"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+        <div class="page-title">
+          <h1>طلب الشراء</h1>
+          <span class="title-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="t-basket"><path d="M17.21 9l-4.38-6.56a.993.993 0 0 0-.83-.42c-.32 0-.64.14-.83.43L6.79 9H2c-.55 0-1 .45-1 1 0 .09.01.18.04.27l2.54 9.27c.23.84 1 1.46 1.92 1.46h13c.92 0 1.69-.62 1.93-1.46l2.54-9.27L23 10c0-.55-.45-1-1-1h-4.79zM9 9l3-4.4L15 9H9z"/><circle cx="8" cy="14" r="1.1" fill="#fff"/><circle cx="12" cy="14" r="1.1" fill="#fff"/><circle cx="16" cy="14" r="1.1" fill="#fff"/><circle cx="10" cy="17.2" r="1.1" fill="#fff"/><circle cx="14" cy="17.2" r="1.1" fill="#fff"/></svg>
+            <svg viewBox="0 0 24 24" class="t-leaf"><path d="M6.05 8.05a7.001 7.001 0 0 0-.02 9.88c1.47-3.4 4.09-6.24 7.36-7.93A15.952 15.952 0 0 0 8 19.32c2.6 1.23 5.8.78 7.95-1.37C19.43 14.47 20 4 20 4S9.53 4.57 6.05 8.05z"/></svg>
+          </span>
+        </div>
+        <span class="nav-spacer" aria-hidden="true"></span>
+      </div>
+
+      <img class="hero no-print" src="assets/screens/purchase/hero-band.png" alt="">
+
+      @if (loading) {
+        <div class="card empty">جاري تحميل طلب الشراء...</div>
+      } @else if (error) {
+        <div class="card empty err">{{ error }}</div>
+      } @else if (order) {
+        <section class="card">
+          <h1 class="print-title">طلب الشراء</h1>
+          <div class="name-bar">
+            @if (editing) {
+              <input #nameInput class="name-input" type="text" maxlength="150" [value]="nameDraft"
+                     (input)="nameDraft = nameInput.value" (keydown.enter)="saveName()" (keydown.escape)="cancelName()"
+                     aria-label="اسم الطلب">
+              <button type="button" class="name-btn ok" (click)="saveName()" [disabled]="savingName" aria-label="حفظ الاسم">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              </button>
+              <button type="button" class="name-btn" (click)="cancelName()" aria-label="إلغاء">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            } @else {
+              <b class="name-text">{{ order.name || 'طلب الشراء' }}</b>
+              <button type="button" class="name-btn no-print" (click)="editName()" aria-label="تعديل اسم الطلب">
+                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+              </button>
+            }
+          </div>
+          @if (nameError) { <p class="name-err no-print">{{ nameError }}</p> }
+
+          <div class="count-bar">
+            <svg viewBox="0 0 24 24" class="cnt-ico"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            <b class="cnt-label">عدد الطلبات</b>
+            <span class="count-num">{{ lineCount }}</span>
+          </div>
+          @for (group of groups; track group.place; let gi = $index) {
+            <div class="place">
+              <div class="place-head">
+                @if (gi % 2 === 0) {
+                  <svg viewBox="0 0 24 24"><path d="M6.05 8.05a7.001 7.001 0 0 0-.02 9.88c1.47-3.4 4.09-6.24 7.36-7.93A15.952 15.952 0 0 0 8 19.32c2.6 1.23 5.8.78 7.95-1.37C19.43 14.47 20 4 20 4S9.53 4.57 6.05 8.05z"/></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24"><path d="M17.21 9l-4.38-6.56a.993.993 0 0 0-.83-.42c-.32 0-.64.14-.83.43L6.79 9H2c-.55 0-1 .45-1 1 0 .09.01.18.04.27l2.54 9.27c.23.84 1 1.46 1.92 1.46h13c.92 0 1.69-.62 1.93-1.46l2.54-9.27L23 10c0-.55-.45-1-1-1h-4.79zM9 9l3-4.4L15 9H9z"/><circle cx="8" cy="14" r="1.1" fill="#EAF2DA"/><circle cx="12" cy="14" r="1.1" fill="#EAF2DA"/><circle cx="16" cy="14" r="1.1" fill="#EAF2DA"/><circle cx="10" cy="17.2" r="1.1" fill="#EAF2DA"/><circle cx="14" cy="17.2" r="1.1" fill="#EAF2DA"/></svg>
+                }
+                <h2>{{ group.place }}</h2>
+              </div>
+              @for (line of group.lines; track line.contentId + ':' + line.unitId) {
+                <article class="row">
+                  <img class="pic" [src]="imageOf(line)" [alt]="line.name || ''">
+                  <b class="name">{{ line.name }}</b>
+                  <span class="qty"><bdi>{{ qtyText(line) }}</bdi></span>
+                </article>
+              }
+            </div>
+          }
+          @if (!groups.length) {
+            <div class="none">لا توجد مكونات في هذا الطلب.</div>
+          }
+          @if (order.items?.length) {
+            <div class="place dishes">
+              <div class="place-head dish-head">
+                <svg viewBox="0 0 24 24"><path d="M12 6c-4.4 0-8 3.1-8.7 7h17.4C20 9.1 16.4 6 12 6zm0-1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM2 15h20v2H2z"/></svg>
+                <h2>الأكلات المختارة</h2>
+                <span class="dish-count">{{ order.items.length }}</span>
+              </div>
+              @for (dish of order.items; track dish.itemId) {
+                <div class="row">
+                  <img class="pic dish-pic" [src]="dishImage(dish.imagePath)" [alt]="dish.name || ''">
+                  <b class="name">{{ dish.name }}</b>
+                  <span class="qty dish-qty"><bdi>{{ dish.repeatCount }}</bdi> مرة@if (dish.peopleCount) { · <bdi>{{ dish.peopleCount }}</bdi> أفراد}</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <div class="actions no-print">
+          <button type="button" class="act print" (click)="print('lines')">
+            <svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z"/><circle cx="18" cy="11.5" r="1"/></svg>
+            طباعة الطلبات
+          </button>
+          <button type="button" class="act print all" (click)="print('all')">
+            <svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z"/><circle cx="18" cy="11.5" r="1"/></svg>
+            الطلبات والأكلات
+          </button>
+          <button type="button" class="act share-btn" (click)="share()">
+            <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+            مشاركة
+          </button>
+        </div>
+      }
+
+      <fa-tab-bar class="no-print" />
+    </div>
+  `,
+  styles: [`
+    /* All sizes are mockup px of the 841px-wide design: calc(N * var(--u)). */
+    .po {
+      --u: calc(var(--fa-w) / 841);
+      background: #FDF7F0;
+      padding-bottom: calc(((126 + 22) * 0.9 + 40) * var(--u) + env(safe-area-inset-bottom));
+    }
+    .po svg { display: block; fill: currentColor; flex: none; }
+
+    /* ---------- back / title / share */
+    .nav-row {
+      position: relative;
+      height: calc(76 * var(--u));
+      margin: calc(9 * var(--u)) calc(31 * var(--u)) 0 calc(30 * var(--u));
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-btn {
+      width: calc(83 * var(--u)); height: calc(76 * var(--u)); padding: 0;
+      border: 0 !important; border-radius: calc(20 * var(--u)) !important;
+      background: #FFFDFA !important; color: #2E1E12 !important;
+      box-shadow: 0 calc(4 * var(--u)) calc(14 * var(--u)) rgba(120, 72, 30, .12);
+      display: grid; place-items: center; cursor: pointer;
+    }
+    .nav-btn svg { width: calc(46 * var(--u)); height: calc(46 * var(--u)); }
+    .nav-btn .chev { width: calc(58 * var(--u)); height: calc(58 * var(--u)); }
+    .page-title {
+      position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+      display: flex; align-items: center; justify-content: center; gap: calc(16 * var(--u));
+      pointer-events: none;
+    }
+    .page-title h1 { margin: 0; font-size: calc(31 * var(--u)); font-weight: 800; color: #2E1E12; line-height: 1; white-space: nowrap; }
+    .title-ico { position: relative; width: calc(58 * var(--u)); height: calc(58 * var(--u)); margin-top: calc(-6 * var(--u)); }
+    .t-basket { position: absolute; left: calc(-6 * var(--u)); bottom: calc(-8 * var(--u)); width: calc(66 * var(--u)); height: calc(66 * var(--u)); color: #F7931E; }
+    .t-leaf { position: absolute; left: calc(2 * var(--u)); top: calc(-16 * var(--u)); width: calc(28 * var(--u)); height: calc(28 * var(--u)); color: #6DB33F; transform: rotate(-20deg); }
+
+    /* ---------- hero art (cropped from the mockup) */
+    .hero { display: block; width: 100%; height: calc(121 * var(--u)); margin-top: calc(22 * var(--u)); object-fit: cover; object-position: center bottom; }
+
+    /* ---------- main card */
+    .card {
+      position: relative; z-index: 1;
+      margin: calc(-2 * var(--u)) calc(29 * var(--u)) 0 calc(28 * var(--u));
+      padding: calc(20 * var(--u)) calc(20 * var(--u)) calc(34 * var(--u));
+      border-radius: calc(44 * var(--u));
+      background: #FFFDFB;
+      box-shadow: 0 calc(8 * var(--u)) calc(28 * var(--u)) rgba(150, 95, 40, .10);
+    }
+    .card.empty { text-align: center; padding: calc(60 * var(--u)) calc(24 * var(--u)); color: #8A6A4A; font-size: calc(26 * var(--u)); font-weight: 700; }
+    .card.empty.err { color: #C0392B; }
+    .none { text-align: center; padding: calc(40 * var(--u)) 0 calc(10 * var(--u)); color: #8A6A4A; font-size: calc(24 * var(--u)); font-weight: 700; }
+    .print-title { display: none; }
+
+    .count-bar {
+      display: flex; align-items: center;
+      height: calc(76 * var(--u));
+      padding: 0 calc(28 * var(--u)) 0 calc(29 * var(--u));
+      margin: 0 0 calc(22 * var(--u));
+      border-radius: calc(42 * var(--u));
+      background: linear-gradient(90deg, #FDF1E6 0%, #FDE8D4 100%);
+      box-shadow: inset 0 calc(-2 * var(--u)) calc(6 * var(--u)) rgba(240, 160, 90, .08);
+    }
+    .cnt-ico { width: calc(46 * var(--u)); height: calc(46 * var(--u)); color: #F57C1F; }
+    .cnt-label { margin-right: calc(14 * var(--u)); font-size: calc(25 * var(--u)); font-weight: 800; color: #2E1E12; }
+    .count-num {
+      margin-right: auto;
+      min-width: calc(88 * var(--u)); height: calc(52 * var(--u)); padding: 0 calc(18 * var(--u));
+      border-radius: calc(26 * var(--u));
+      background: linear-gradient(180deg, #FF7A12, #F45F04);
+      color: #fff; font-size: calc(25 * var(--u)); font-weight: 800;
+      display: grid; place-items: center; line-height: 1; padding-top: calc(5 * var(--u));
+      box-shadow: 0 calc(4 * var(--u)) calc(10 * var(--u)) rgba(243, 94, 2, .25);
+    }
+
+    /* ---------- purchase place group */
+    .place {
+      margin: 0 calc(12 * var(--u));
+      border-radius: calc(32 * var(--u));
+      background: #FFFCF8;
+      border: calc(1.5 * var(--u)) solid #F2E8DD;
+      box-shadow: 0 calc(4 * var(--u)) calc(12 * var(--u)) rgba(150, 95, 40, .07);
+      overflow: hidden;
+      padding-bottom: calc(6 * var(--u));
+    }
+    .place + .place { margin-top: calc(18 * var(--u)); }
+    .place-head {
+      display: flex; align-items: center; gap: calc(18 * var(--u));
+      height: calc(56 * var(--u));
+      padding: 0 calc(28 * var(--u));
+      background: linear-gradient(90deg, #E6F0D3, #EEF4E0);
+    }
+    .place-head svg { width: calc(42 * var(--u)); height: calc(42 * var(--u)); color: #3E9A2C; }
+    .place-head h2 { margin: 0; font-size: calc(25 * var(--u)); font-weight: 800; color: #2E1E12; }
+
+    .row {
+      display: flex; align-items: center;
+      height: calc(66 * var(--u));
+      margin: 0 calc(28 * var(--u)) 0 calc(28 * var(--u));
+      border-bottom: calc(1.5 * var(--u)) solid #EFE4D8;
+    }
+    .place .row:last-child { border-bottom: 0; }
+    .pic {
+      width: calc(58 * var(--u)); height: calc(50 * var(--u));
+      object-fit: contain; flex: none; border-radius: calc(16 * var(--u));
+    }
+    .name {
+      flex: 1 1 auto; min-width: 0;
+      margin-right: calc(20 * var(--u));
+      font-size: calc(26 * var(--u)); font-weight: 700; color: #2E1E12;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .qty {
+      flex: none; min-width: calc(150 * var(--u)); height: calc(42 * var(--u));
+      margin-left: calc(-4 * var(--u));
+      padding: 0 calc(20 * var(--u));
+      border-radius: calc(25 * var(--u));
+      background: #FDEEE1; color: #F06A08;
+      font-size: calc(22 * var(--u)); font-weight: 800; white-space: nowrap;
+      display: inline-flex; align-items: center; justify-content: center; gap: calc(9 * var(--u)); line-height: 1;
+    }
+
+    /* ---------- ordered dishes */
+    .place.dishes { margin-top: calc(22 * var(--u)); }
+    .dish-head { background: linear-gradient(90deg, #FDEBD8, #FFF3E6) !important; }
+    .dish-head svg { color: #F26A0A !important; }
+    .dish-count {
+      margin-right: auto; min-width: calc(44 * var(--u)); height: calc(36 * var(--u)); padding: 0 calc(10 * var(--u));
+      border-radius: calc(18 * var(--u)); background: #F26A0A; color: #fff;
+      display: grid; place-items: center; font-size: calc(21 * var(--u)); font-weight: 800;
+    }
+    .dish-pic { object-fit: cover !important; }
+    .dish-qty { min-width: 0 !important; }
+
+    /* ---------- order name (editable) */
+    .name-bar {
+      display: flex; align-items: center; justify-content: center; gap: calc(14 * var(--u));
+      min-height: calc(64 * var(--u)); margin: 0 0 calc(16 * var(--u));
+    }
+    .name-text { font-size: calc(27 * var(--u)); font-weight: 800; color: #2E1E12; text-align: center; }
+    .name-input {
+      flex: 1 1 auto; min-width: 0; height: calc(64 * var(--u)); padding: 0 calc(20 * var(--u));
+      border: calc(2 * var(--u)) solid #F7B98A; border-radius: calc(32 * var(--u)); outline: none;
+      font-family: inherit; font-size: calc(26 * var(--u)); font-weight: 700; color: #2E1E12; background: #FFFDFA;
+    }
+    .name-input:focus { border-color: #F26A0A; }
+    .name-btn {
+      flex: 0 0 auto; width: calc(56 * var(--u)); height: calc(56 * var(--u)); padding: 0;
+      border: 0 !important; border-radius: 50% !important; cursor: pointer; display: grid; place-items: center;
+      background: #FDEBDB !important; color: #F26A0A !important;
+    }
+    .name-btn.ok { background: #F26A0A !important; color: #fff !important; }
+    .name-btn:disabled { opacity: .6; }
+    .name-btn svg { width: calc(30 * var(--u)); height: calc(30 * var(--u)); fill: currentColor; }
+    .name-err { margin: 0 0 calc(12 * var(--u)); text-align: center; color: #C62828; font-size: calc(22 * var(--u)); font-weight: 700; }
+
+    /* ---------- actions: print orders / print orders + meals / share */
+    .actions {
+      display: flex; justify-content: center; align-items: center; gap: calc(12 * var(--u));
+      margin: calc(36 * var(--u)) calc(30 * var(--u)) 0;
+    }
+    .act {
+      flex: 1 1 0; min-width: 0; height: calc(66 * var(--u)); padding: 0 calc(10 * var(--u)) !important;
+      border-radius: calc(33 * var(--u)) !important; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: calc(8 * var(--u));
+      font-family: inherit; font-size: calc(21 * var(--u)); font-weight: 800; white-space: nowrap;
+    }
+    .act svg { width: calc(32 * var(--u)); height: calc(32 * var(--u)); flex: none; fill: currentColor; }
+    .print {
+      border: 0 !important;
+      background: linear-gradient(90deg, #FF8A1A 0%, #F45D03 100%) !important;
+      color: #FFF5E8 !important;
+      box-shadow: 0 calc(6 * var(--u)) calc(14 * var(--u)) rgba(243, 94, 2, .24);
+    }
+    .print.all {
+      background: #FFF8F1 !important; color: #E0640A !important;
+      border: calc(2 * var(--u)) solid #E0782A !important; box-shadow: none;
+    }
+    .share-btn {
+      border: 0 !important; background: #FFFDFA !important; color: #F26A0A !important;
+      box-shadow: 0 calc(5 * var(--u)) calc(14 * var(--u)) rgba(120, 72, 30, .14);
+    }
+    .nav-spacer { width: calc(83 * var(--u)); }
+
+    @media print {
+      .po { background: #fff !important; padding: 0 !important; max-width: none !important; --u: 0.9px; }
+      .no-print { display: none !important; }
+      .po.print-lines .place.dishes { display: none !important; }
+      .print-title { display: block; margin: 0 0 calc(20 * var(--u)); text-align: center; font-size: calc(34 * var(--u)); font-weight: 800; }
+      .card { margin: 0 !important; box-shadow: none !important; }
+      .place { break-inside: avoid; }
+      .count-bar, .place-head, .qty, .count-num {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+    }
+  `]
+})
+export class OrderComponent implements OnInit {
+  order: OrderDetail | null = null;
+  groups: PlaceGroup[] = [];
+  lineCount = 0;
+  loading = true;
+  error = '';
+  printMode: 'lines' | 'all' = 'all';
+  editing = false;
+  nameDraft = '';
+  savingName = false;
+  nameError = '';
+  @ViewChild('nameInput') nameInput?: ElementRef<HTMLInputElement>;
+
+  constructor(
+    private api: ApiService,
+    private draft: DraftService,
+    private route: ActivatedRoute,
+    public location: Location
+  ) {}
+
+  ngOnInit(): void {
+    this.draft.discardWorkingSelection();
+    this.load(this.route.snapshot.paramMap.get('id') || '');
+  }
+
+  qtyText(line: ShoppingLine): string {
+    return purchaseText(line);
+  }
+
+  qtyNumber(line: ShoppingLine): string {
+    return Number.isInteger(line.quantity)
+      ? String(line.quantity)
+      : String(Math.round(line.quantity * 100) / 100);
+  }
+
+  qtyLabel(line: ShoppingLine): string {
+    const qty = Number.isInteger(line.quantity)
+      ? String(line.quantity)
+      : String(Math.round(line.quantity * 100) / 100);
+    const unit = (line.unitName || '').trim();
+    return unit ? `${qty} ${unit}` : qty;
+  }
+
+  dishImage(path?: string | null): string {
+    return mediaUrl(path) || 'assets/screens/foods/koshari.png';
+  }
+
+  imageOf(line: ShoppingLine): string {
+    return mediaUrl(line.imagePath) || 'assets/screens/ingredients/onion.png';
+  }
+
+  editName(): void {
+    if (!this.order) return;
+    this.nameDraft = this.order.name || '';
+    this.nameError = '';
+    this.editing = true;
+    setTimeout(() => this.nameInput?.nativeElement.select());
+  }
+
+  cancelName(): void {
+    this.editing = false;
+    this.nameError = '';
+  }
+
+  saveName(): void {
+    const order = this.order;
+    const name = this.nameDraft.trim();
+    if (!order || this.savingName) return;
+    if (!name) { this.nameError = 'اكتب اسم الطلب'; return; }
+    if (name === (order.name || '')) { this.editing = false; return; }
+    this.savingName = true;
+    this.api.renameOrder(order.id, name).subscribe({
+      next: () => {
+        order.name = name;
+        this.editing = false;
+        this.savingName = false;
+        this.nameError = '';
+      },
+      error: (err: Error) => {
+        this.nameError = err.message || 'تعذر حفظ الاسم';
+        this.savingName = false;
+      }
+    });
+  }
+
+  /** 'lines' prints the ingredients only; 'all' also prints the chosen meals. */
+  print(mode: 'lines' | 'all' = 'lines'): void {
+    this.printMode = mode;
+    const id = this.order?.id;
+    if (id) this.api.markOrderPrinted(id).subscribe({ error: () => undefined });
+    setTimeout(() => window.print(), 60);
+  }
+
+  share(): void {
+    const id = this.order?.id;
+    if (id) this.api.markOrderShared(id).subscribe({ error: () => undefined });
+    const title = this.order?.name || 'طلب الشراء';
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.share) {
+      navigator.share({ title, url }).catch(() => undefined);
+      return;
+    }
+    if (navigator.clipboard?.writeText && url) {
+      navigator.clipboard.writeText(url).catch(() => undefined);
+    }
+  }
+
+  private load(id: string): void {
+    if (!id) {
+      this.loading = false;
+      this.error = 'الطلب غير موجود';
+      return;
+    }
+    this.loading = true;
+    this.api.order(id).subscribe({
+      next: order => {
+        this.order = order;
+        this.groups = this.buildGroups(order.lines || []);
+        this.lineCount = (order.lines || []).filter(line => line.quantity > 0).length;
+        this.loading = false;
+        if (this.route.snapshot.queryParamMap.get('print')) setTimeout(() => this.print(), 400);
+      },
+      error: (err: Error) => {
+        this.error = err.message || 'تعذر تحميل الطلب';
+        this.loading = false;
+      }
+    });
+  }
+
+  private buildGroups(lines: ShoppingLine[]): PlaceGroup[] {
+    const map = new Map<string, ShoppingLine[]>();
+    for (const line of lines) {
+      if (!(line.quantity > 0)) continue;
+      const place = (line.purchasePlaceName || '').trim() || 'البقالة';
+      const list = map.get(place) || [];
+      list.push(line);
+      map.set(place, list);
+    }
+    return [...map.entries()].map(([place, rows], index) => ({
+      place,
+      icon: index === 0 ? 'leaf' : 'basket',
+      lines: rows
+    }));
+  }
+}

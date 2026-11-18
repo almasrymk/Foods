@@ -1,4 +1,4 @@
-﻿namespace Foods.Application.MasterData.Unit.Commands.Create
+namespace Foods.Application.MasterData.Unit.Commands.Create
 {
     using System.Net;
     using System.Threading;
@@ -16,11 +16,14 @@
             {            
             var ob = new Unit
             {
-                Id = new Guid(),
+                Id = Guid.NewGuid(),
                 Name = request.Name,
                 NickName = request.NickName,
                 BasicQuantity = request.BasicQuantity,
                 BeDivided = request.BeDivided,
+                IconPath = request.IconPath,
+                Color = request.Color,
+                TextColor = request.TextColor,
                 IsDeleted = false,
                 Status = 0
             };

@@ -1,0 +1,150 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CmsService, ContentRow, NamedRow, UnitRow } from '../../core/cms.service';
+import { mediaUrl } from '../../core/environment';
+import { IconComponent } from '../../core/icon.component';
+import { PhotoComponent } from '../../core/photo.component';
+import { Select2Component } from '../../core/select2.component';
+import { CmsAlbumComponent } from './cms-album.component';
+
+@Component({
+  selector: 'app-cms-content-form',
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent, PhotoComponent, Select2Component, CmsAlbumComponent],
+  template: `
+    <a class="back" routerLink="/cms/contents">الرجوع للقائمة</a>
+    <h1><app-icon [name]="form.id ? 'edit' : 'add'"></app-icon> {{ form.id ? 'تعديل مكوّن' : 'إضافة مكوّن' }}</h1>
+    <p class="error" *ngIf="error">{{ error }}</p>
+    <form class="panel editor" (ngSubmit)="save()">
+      <div class="fields">
+        <label>الاسم<input [(ngModel)]="form.name" name="name" required></label>
+        <label>أقل كمية<input type="number" step="0.01" [(ngModel)]="form.miniQuantity" name="mini"></label>
+        <label>التصنيف
+          <app-select2 name="category" [(ngModel)]="form.contentCategoryId" [options]="categories" placeholder="اختار التصنيف"></app-select2>
+        </label>
+        <label>المجموعة
+          <app-select2 name="group" [(ngModel)]="form.contentGroupId" [options]="groups" placeholder="اختار المجموعة"></app-select2>
+        </label>
+        <label>الوحدة
+          <app-select2 name="unit" [(ngModel)]="form.unitId" [options]="units" placeholder="اختار الوحدة"></app-select2>
+        </label>
+        <label>مكان الشراء
+          <app-select2 name="place" [(ngModel)]="form.purchasePlaceId" [options]="places" placeholder="بدون" [allowEmpty]="true" emptyLabel="بدون"></app-select2>
+        </label>
+      </div>
+      <section class="purchase">
+        <h2>أقل وحدة شراء</h2>
+        <p class="muted">بتحدد المكون بيتشرى إزاي، والعداد في "طلباتي" بيزيد وينقص على أساسها.</p>
+        <div class="fields">
+          <label>طريقة الشراء
+            <select [(ngModel)]="form.purchaseMode" name="pmode" (ngModelChange)="onMode($event)">
+              <option [ngValue]="0">عادي (بالجرام أو العدد زي ما هو)</option>
+              <option [ngValue]="1">عبوة (زجاجة، علبة، كيس...)</option>
+              <option [ngValue]="2">كسور الكيلو (1/8، 1/4، 1/2 كيلو...)</option>
+              <option [ngValue]="3">بالفلوس (بعشرين جنيه...)</option>
+              <option [ngValue]="4">بالفلوس لحد 1/8 كيلو</option>
+            </select>
+          </label>
+          <ng-container *ngIf="form.purchaseMode === 1">
+            <label>اسم العبوة<input [(ngModel)]="form.packageName" name="pname" placeholder="زجاجة"></label>
+            <label>العبوة فيها كام (بوحدة الوصفة، مثلاً 1000 ملليتر)<input type="number" min="0" step="1" [(ngModel)]="form.purchaseStep" name="pstep"></label>
+          </ng-container>
+          <ng-container *ngIf="form.purchaseMode === 2">
+            <label>أقل كمية
+              <select [(ngModel)]="form.purchaseStep" name="pfrac">
+                <option [ngValue]="125">1/8 كيلو</option>
+                <option [ngValue]="250">1/4 كيلو</option>
+                <option [ngValue]="500">1/2 كيلو</option>
+                <option [ngValue]="1000">1 كيلو</option>
+              </select>
+            </label>
+          </ng-container>
+          <ng-container *ngIf="form.purchaseMode === 3">
+            <label>أقل مبلغ (جنيه)<input type="number" min="0" step="1" [(ngModel)]="form.purchaseStep" name="pmoney"></label>
+            <label>العداد يزود كام جنيه<input type="number" min="0" step="1" [(ngModel)]="form.purchaseIncrement" name="pinc"></label>
+          </ng-container>
+          <ng-container *ngIf="form.purchaseMode === 4">
+            <label>المبلغ لو المطلوب أقل من 1/8 كيلو (جنيه)<input type="number" min="0" step="1" [(ngModel)]="form.purchaseIncrement" name="pmoneykilo">
+              <small>من 1/8 كيلو وطالع يتحسب بكسور الكيلو</small>
+            </label>
+          </ng-container>
+        </div>
+      </section>
+      <section>
+        <h2>الصورة</h2>
+        <div class="file-row">
+          <app-photo [path]="form.imagePath" icon="contents" alt=""></app-photo>
+          <label class="file-btn">اختيار صورة<input type="file" accept="image/*" (change)="onFile($event)"></label>
+        </div>
+      </section>
+      <section>
+        <h2>ألبوم الصور</h2>
+        <app-cms-album kind="content" [ownerId]="form.id"></app-cms-album>
+      </section>
+      <button type="submit" class="save">حفظ</button>
+    </form>
+  `
+})
+export class CmsContentFormComponent implements OnInit {
+  categories: NamedRow[] = [];
+  groups: NamedRow[] = [];
+  units: UnitRow[] = [];
+  places: NamedRow[] = [];
+  form: ContentRow = { id: '', name: '', contentCategoryId: '', contentGroupId: '', unitId: '', miniQuantity: 1, imagePath: '', purchasePlaceId: null, purchaseMode: 0, packageName: '', purchaseStep: 0, purchaseIncrement: 0 };
+  error = '';
+  image = mediaUrl;
+
+  constructor(private cms: CmsService, private route: ActivatedRoute, private router: Router) {}
+
+  ngOnInit(): void {
+    this.cms.list<NamedRow>('ContentCategory').subscribe(rows => this.categories = rows);
+    this.cms.list<NamedRow>('ContentGroup').subscribe(rows => this.groups = rows);
+    this.cms.list<UnitRow>('Unit').subscribe(rows => this.units = rows);
+    this.cms.list<NamedRow>('PurchasePlace').subscribe(rows => this.places = rows);
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) return;
+    this.cms.get<ContentRow>('Content', id).subscribe({
+      next: row => this.form = { ...row, purchaseMode: row.purchaseMode || 0, purchaseStep: row.purchaseStep || 0, purchaseIncrement: row.purchaseIncrement || 0 },
+      error: (err: Error) => this.error = err.message
+    });
+  }
+
+  /** Sensible defaults when the purchase mode changes. */
+  onMode(mode: number): void {
+    if (mode === 1) { this.form.packageName = this.form.packageName || 'زجاجة'; this.form.purchaseStep = this.form.purchaseStep || 1000; }
+    if (mode === 2) this.form.purchaseStep = [125, 250, 500, 1000].includes(Number(this.form.purchaseStep)) ? Number(this.form.purchaseStep) : 125;
+    if (mode === 3) { this.form.purchaseStep = this.form.purchaseStep && this.form.purchaseStep < 1000 ? this.form.purchaseStep : 20; this.form.purchaseIncrement = this.form.purchaseIncrement || 5; }
+    if (mode === 4) { this.form.purchaseStep = 125; this.form.purchaseIncrement = this.form.purchaseIncrement || 30; }
+  }
+
+  onFile(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.cms.upload(file).subscribe({
+      next: path => this.form.imagePath = path,
+      error: (err: Error) => this.error = err.message
+    });
+  }
+
+  save(): void {
+    const body = {
+      id: this.form.id,
+      name: this.form.name,
+      contentCategoryId: this.form.contentCategoryId,
+      contentGroupId: this.form.contentGroupId,
+      unitId: this.form.unitId,
+      miniQuantity: Number(this.form.miniQuantity),
+      imagePath: this.form.imagePath || null,
+      purchasePlaceId: this.form.purchasePlaceId || null,
+      purchaseMode: Number(this.form.purchaseMode || 0),
+      packageName: (this.form.packageName || '').trim() || null,
+      purchaseStep: Number(this.form.purchaseStep || 0),
+      purchaseIncrement: Number(this.form.purchaseIncrement || 0)
+    };
+    const done = () => this.router.navigateByUrl('/cms/contents');
+    const fail = (err: Error) => this.error = err.message;
+    if (this.form.id) this.cms.update('Content', body).subscribe({ next: done, error: fail });
+    else this.cms.create('Content', body).subscribe({ next: done, error: fail });
+  }
+}

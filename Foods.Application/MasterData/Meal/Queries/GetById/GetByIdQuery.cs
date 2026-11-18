@@ -4,5 +4,5 @@
 
     public sealed record GetByIdQuery(Guid Id) : IQuery<GetByIdQueryResponse>;
 
-    public sealed record GetByIdQueryResponse(Guid Id, string Name , string Description);
+    public sealed record GetByIdQueryResponse(Guid Id, string Name, string Description, string? ImagePath, string? IconPath, string? Color, string? TextColor, int Sort);
 }

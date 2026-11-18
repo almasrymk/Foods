@@ -12,6 +12,8 @@
                 configuration.RegisterServicesFromAssembly(assembly));
 
             services.AddValidatorsFromAssembly(assembly);
+            services.AddScoped<Foods.Application.Customer.Ordering.IOrderCalculator, Foods.Application.Customer.Ordering.OrderCalculator>();
+            services.AddScoped<Foods.Application.Customer.Notifications.NotificationGenerator>();
 
             return services;
         }
