@@ -573,7 +573,7 @@
   white-space: nowrap;
 }
 .hm-meta .hm-clock { width: calc(27 * var(--u)); height: calc(27 * var(--u)); margin-left: calc(6 * var(--u)); }
-.hm-meta .hm-persons { margin-right: calc(46 * var(--u)); }
+.hm-meta .hm-persons { margin-right: 0; }
 .hm-meta .hm-person { width: calc(30 * var(--u)); height: calc(30 * var(--u)); margin-right: calc(6 * var(--u)); }
 .hm-qty {
   position: relative;

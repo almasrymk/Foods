@@ -816,10 +816,6 @@ class _MealCard extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  FaPath(FaPaths.clock, size: u(27), color: const Color(0xFF5B4636)),
-                  SizedBox(width: u(6)),
-                  Text('30 د', style: Fa.text(u(25), color: const Color(0xFF5B4636))),
-                  SizedBox(width: u(46)),
                   Text('$people', style: Fa.text(u(25), color: const Color(0xFF5B4636))),
                   SizedBox(width: u(6)),
                   FaPath(FaPaths.personSmall, size: u(30), color: const Color(0xFF5B4636)),
